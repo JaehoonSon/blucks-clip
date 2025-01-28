@@ -1,23 +1,22 @@
 import os
 import time
 import uuid
-from flask import Flask, request, jsonify, Response, send_file, stream_with_context
+from flask import Flask, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 import google.generativeai as genai
 from flask_cors import CORS
-import json
-import requests
 import io
-from io import BytesIO
 from google.cloud import storage
 import ffmpeg
 import time
 import tempfile
 from dotenv import load_dotenv
+from google.oauth2 import service_account
 
 # genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-storage_client = storage.Client()
+credentials = service_account.Credentials.from_service_account_file("./theblucks-mail-3cb66286c8da.json")
+storage_client = storage.Client(credentials=credentials)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})

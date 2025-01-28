@@ -1,3 +1,4 @@
-theblucks-mail-3cb66286c8da.json
-/__pycache__
-.env
+# backend/theblucks-mail-3cb66286c8da.json
+**/.env
+__pycache__/
+**/.DS_Store

@@ -1,0 +1,21 @@
+# Backend Development Dockerfile
+FROM python:3.9.6
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 5001
+
+# Set the correct FLASK_APP environment variable
+ENV FLASK_APP=app.api
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=5001
+
+# Start the Flask development server
+# CMD ["flask", "run"]
+CMD ["flask", "--app", "./app/api", "run", "--port=5001"]
