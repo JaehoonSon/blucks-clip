@@ -1,4 +1,5 @@
-import { Message } from "../App";
+// import { Message } from "../App";
+import { Message } from "../Pages/MainChat";
 import { UserIcon, Bot } from "lucide-react";
 import VideoClip from "./VideoClip";
 

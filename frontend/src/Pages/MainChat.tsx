@@ -9,18 +9,17 @@ import {
   Paperclip,
   Sparkles,
 } from "lucide-react";
-import UploadVideos from "./Components/UploadVideos";
+import UploadVideos from "../Components/UploadVideos";
 import {
   PromptResponse,
   TimeStamp,
   uploadVideo,
   UploadVideoResponse,
-} from "./Services/api";
-import UploadedVideos from "./Components/UploadedVideos";
-import MessageInput from "./Components/MessageInput";
-import ChatMessages from "./Components/ChatMessages";
-import Test from "./Components/Test";
-import { API_BUCKET_URL } from "./config";
+} from "../Services/api";
+import UploadedVideos from "../Components/UploadedVideos";
+import MessageInput from "../Components/MessageInput";
+import ChatMessages from "../Components/ChatMessages";
+import { API_BUCKET_URL } from "../config";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 interface Clip {
@@ -47,7 +46,7 @@ export interface Message {
   typing?: boolean;
 }
 
-function Home() {
+function MainChat() {
   const [textInput, setTextInput] = useState<string>("");
   const [uploadedVideos, setUploadedVideos] = useState<UploadVideoResponse[]>([
     {
@@ -215,4 +214,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default MainChat;
