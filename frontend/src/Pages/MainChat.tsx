@@ -50,10 +50,10 @@ function MainChat() {
   const [textInput, setTextInput] = useState<string>("");
   const [uploadedVideos, setUploadedVideos] = useState<UploadVideoResponse[]>([
     {
-      file_id: "files/n5l5fi649o4n",
+      file_id: "files/hegg7ank9bph",
       file_name: "videoplayback (1).mp4",
       file_uri:
-        "https://generativelanguage.googleapis.com/v1beta/files/n5l5fi649o4n",
+        "https://generativelanguage.googleapis.com/v1beta/files/hegg7ank9bph",
       message: "File uploaded successfully",
       mime_type: "video/mp4",
       selected: true,

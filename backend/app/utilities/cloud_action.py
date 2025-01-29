@@ -39,16 +39,25 @@ def upload_bytes_to_gcs(bucket_name, destination_blob_name, file_data):
     
     print(f"File {destination_blob_name} uploaded to {bucket_name}.")
 
-def upload_to_gemini(file_data, mime_type=None, file_name=None):
+def upload_to_gemini(file_data, mime_type=None, file_name=None, display_name=None):
     """Uploads the given file to Gemini."""
-    # file = genai.upload_file(path, mime_type=mime_type)
-    # print(f"Uploaded file '{file.display_name}' as: {file.uri}")
-    # return file
     file_like_object = io.BytesIO(file_data)  # Convert bytes to a file-like object
     file_like_object.name = file_name  # Set a name for the file
-    file = genai.upload_file(file_like_object, mime_type=mime_type)
-    # print(f"Uploaded file '{file.display_name}' as: {file.uri}")
+    file = genai.upload_file(file_like_object, mime_type=mime_type, display_name=display_name)
     return file
+
+def check_file_exists_genai(file_name):
+    try:
+        print (genai.get_file(name=file_name), flush=True)
+        return genai.get_file(name=file_name).name == file_name
+    except Exception as e:
+        return False
+
+def check_file_blob_exists_gcs(bucket_name, blob_name):
+    bucket = storage_client.bucket(bucket_name=bucket_name)
+    blob = bucket.blob(blob_name=blob_name)
+
+    return blob.exists()
 
 def delete_to_gemini(name):
     genai.delete_file(name=name)
@@ -80,4 +89,4 @@ def get_video_from_bucket(file_id):
     file_contents = blob.download_as_bytes()
     byte_stream = io.BytesIO(file_contents)
 
-    return byte_stream, blob.name.split('/')[-1]
+    return byte_stream, blob

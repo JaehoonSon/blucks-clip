@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from utilities.cloud_action import model
+from utilities.cloud_action import model, upload_to_gemini, get_video_from_bucket, check_file_exists_genai, check_file_blob_exists_gcs
 
 SendPrompt_bp = Blueprint('SendPrompt', __name__)
 
@@ -12,6 +12,22 @@ def send_prompt():
     if not file_ids or not prompt or not isinstance(file_ids, list):
         return jsonify({'error': 'List of File IDs and prompt are required'}), 400
     
+    # if not check_file_exists_genai(file_ids[0].get("file_id")): 
+    #     if not check_file_blob_exists_gcs(bucket_name="theblucks-clipper-bucket", blob_name=file_ids[0].get("file_id")):
+    #         return jsonify({"error": "This file does not exist"})
+    #     file_data, blob = get_video_from_bucket(file_id=file_ids[0].get("file_id"))
+    #     print("This is blob", flush=True)
+    #     print(type(blob), flush=True)
+
+    #     file = upload_to_gemini(
+    #         file_data=file_data.getvalue(),
+    #         mime_type=file_ids[0].get("mime_type"),
+    #         file_name=file_ids[0].get("file_id"),
+    #         display_name=file_ids[0].get("file_id")
+    #         )
+    #     print(file, flush=True)
+
+
     file_data_parts = [
         {
             "file_data": {

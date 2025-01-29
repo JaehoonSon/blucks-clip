@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_file
 import json
 from utilities.video_manipulation import segment_video
-from utilities.cloud_action import get_video_from_bucket, storage_client
+from utilities.cloud_action import get_video_from_bucket
 import io
 
 GetVideo_bp = Blueprint('GetVideo', __name__)
@@ -22,12 +22,12 @@ def get_video():
     # blob = bucket.blob(file_id)
     # file_contents = blob.download_as_bytes()
     # byte_stream = io.BytesIO(file_contents)
-    byte_stream, file_name = get_video_from_bucket(file_id=file_id)
+    byte_stream, blob = get_video_from_bucket(file_id=file_id)
     segmented_video = segment_video(byte_stream=byte_stream, start_time=start, end_time=end, mimeType=mimeType)
 
     return send_file(
         segmented_video,
         mimetype=mimeType,
         as_attachment=True,
-        download_name=file_name
+        download_name=blob.name.split('/')[-1]
     )
