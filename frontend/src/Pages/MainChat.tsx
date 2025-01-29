@@ -19,7 +19,7 @@ import {
 import UploadedVideos from "../Components/UploadedVideos";
 import MessageInput from "../Components/MessageInput";
 import ChatMessages from "../Components/ChatMessages";
-import { API_BUCKET_URL } from "../config";
+import { API_BASE_URL, API_BUCKET_URL } from "../config";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 interface Clip {
@@ -68,10 +68,10 @@ function MainChat() {
       selected: true,
     },
     {
-      file_id: "files/jr8ira80cfnq",
+      file_id: "files/tmzfv9m98ls9",
       file_name: "White Basketball (2).mp4",
       file_uri:
-        "https://generativelanguage.googleapis.com/v1beta/files/jr8ira80cfnq",
+        "https://generativelanguage.googleapis.com/v1beta/files/tmzfv9m98ls9",
       message: "File uploaded successfully",
       mime_type: "video/mp4",
       selected: true,
@@ -89,8 +89,7 @@ function MainChat() {
           commentary: "HOME RUN!",
           filename: "baseball",
           collapsed: true,
-          videoUrl:
-            "https://c82d-130-58-97-167.ngrok-free.app/get-video?file_id=files/2h7whorqqy6t&mimetype=video/mp4",
+          videoUrl: `${API_BASE_URL}/get-video?file_id=files/669lpd8zkw2t&mimetype=video/mp4`,
           timeStamp: {
             start: "00:00:01",
             end: "00:00:03",
@@ -113,98 +112,120 @@ function MainChat() {
 
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
-      <div className="max-w-[1800px] mx-auto px-6 h-screen flex">
+      <div className="mx-auto h-screen flex flex-col lg:flex-row">
         {/* Main Chat Area */}
-        <div className="flex-grow flex flex-col bg-gray-50 my-6 rounded-l-2xl shadow-2xl">
-          <ChatMessages history={history} />
+        <div className="flex-1 flex flex-col bg-gray-50 shadow-2xl overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
+            <ChatMessages history={history} />
+          </div>
+
           {/* Input Area */}
-          <div className="border-t bg-white p-4 rounded-bl-2xl">
+          <div className="border-t bg-white">
             {/* Selected Videos Context */}
             {uploadedVideos.some((v) => v.selected) && (
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg select-none">
-                <p className="text-sm text-blue-600 font-medium mb-2">
-                  Selected Context:
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  {uploadedVideos
-                    .filter((v) => v.selected)
-                    .map((video) => (
-                      <span
-                        key={video.file_id}
-                        className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-blue-200 active:bg-blue-300 shadow-sm hover:shadow-md"
-                        onClick={() =>
-                          setUploadedVideos((prevVideos) =>
-                            prevVideos.map((v) =>
-                              v.file_id === video.file_id
-                                ? { ...v, selected: false }
-                                : v
+              <div className="px-4 pt-3 pb-2 bg-blue-50/50 select-none">
+                <div className="max-w-4xl mx-auto">
+                  <p className="text-xs text-blue-600 font-medium mb-1">
+                    SELECTED CONTEXT:
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    {uploadedVideos
+                      .filter((v) => v.selected)
+                      .map((video) => (
+                        <span
+                          key={video.file_id}
+                          className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium cursor-pointer transition-all hover:bg-blue-200 active:bg-blue-300 shadow-xs"
+                          onClick={() =>
+                            setUploadedVideos((prevVideos) =>
+                              prevVideos.map((v) =>
+                                v.file_id === video.file_id
+                                  ? { ...v, selected: false }
+                                  : v
+                              )
                             )
-                          )
-                        }
-                      >
-                        {video.file_name}
-                      </span>
-                    ))}
+                          }
+                        >
+                          {video.file_name}
+                        </span>
+                      ))}
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Suggested Prompts */}
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-2 text-slate-800 shrink-0 select-none">
-                <Sparkles className="h-6 w-6" />
-                <span className="text-lg font-semibold">AI</span>
-              </div>
-              <div className="flex items-center gap-2 overflow-x-auto">
-                {suggestedPrompts.map((prompt) => (
-                  <button
-                    key={prompt.id}
-                    onClick={() => handlePromptClick(prompt.text)}
-                    className="px-4 py-2 bg-blue-50/50 text-blue-600 rounded-full text-sm whitespace-nowrap hover:bg-blue-100/50 transition-colors"
-                  >
-                    {prompt.text}
-                  </button>
-                ))}
+            <div className="border-t pt-3 px-4 bg-white">
+              <div className="max-w-4xl mx-auto">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-2 text-slate-800 shrink-0 select-none">
+                    <Sparkles className="h-5 w-5 text-purple-500" />
+                    <span className="text-sm font-semibold">
+                      AI SUGGESTIONS
+                    </span>
+                  </div>
+                  <div className="flex-1 overflow-x-auto pb-2">
+                    <div className="flex gap-2">
+                      {suggestedPrompts.map((prompt) => (
+                        <button
+                          key={prompt.id}
+                          onClick={() => handlePromptClick(prompt.text)}
+                          className="px-3 py-1.5 bg-blue-50/50 text-blue-600 rounded-full text-xs whitespace-nowrap hover:bg-blue-100/50 transition-colors shadow-sm"
+                        >
+                          {prompt.text}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Message Input */}
+                <div className="pb-3">
+                  <MessageInput
+                    textInput={textInput}
+                    setTextInput={setTextInput}
+                    uploadedVideos={uploadedVideos}
+                    setUploadedVideos={setUploadedVideos}
+                    history={history}
+                    setHistory={setHistory}
+                  />
+                </div>
               </div>
             </div>
-
-            {/* Message Input */}
-            <MessageInput
-              textInput={textInput}
-              setTextInput={setTextInput}
-              uploadedVideos={uploadedVideos}
-              setUploadedVideos={setUploadedVideos}
-              history={history}
-              setHistory={setHistory}
-            />
           </div>
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 bg-white my-6 rounded-r-2xl shadow-2xl">
+        <div className="w-full lg:w-96 xl:w-80 bg-white shadow-2xl overflow-y-auto">
           <div className="p-4">
-            <h2 className="font-semibold mb-4">Upload Videos</h2>
+            <h2 className="font-semibold text-lg mb-4">Video Library</h2>
 
-            {/* Uploaded New Videos */}
             <UploadVideos
               uploadedVideos={uploadedVideos}
               setUploadedVideos={setUploadedVideos}
             />
 
-            {/* Uploaded Videos List */}
-            <UploadedVideos
-              uploadedVideos={uploadedVideos}
-              setUploadedVideos={setUploadedVideos}
-            />
-
-            {/* Output Videos */}
             <div className="mt-6">
-              <h3 className="font-medium text-sm text-gray-600 mb-2">
-                Output Videos
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                Uploaded Content
               </h3>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+              <div className="space-y-2">
+                {uploadedVideos.map((video) => (
+                  <UploadedVideos
+                    key={video.file_id}
+                    uploadedVideo={video}
+                    setUploadedVideos={setUploadedVideos}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6 border-t pt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                Generated Clips
+              </h3>
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-sm text-gray-600">
                 <Plus className="w-4 h-4" />
-                <span className="text-sm">Create New Output</span>
+                <span>New Video Compilation</span>
               </button>
             </div>
           </div>

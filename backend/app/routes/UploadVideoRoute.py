@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file
 import uuid
-from utilities.cloud_upload import upload_to_gemini, wait_for_files_active, upload_bytes_to_gcs
+from utilities.cloud_action import upload_to_gemini, wait_for_files_active, upload_bytes_to_gcs
 
 UploadVideo_bp = Blueprint('UploadVideo', __name__)
 

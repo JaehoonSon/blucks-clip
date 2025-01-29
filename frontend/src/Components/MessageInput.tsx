@@ -5,7 +5,8 @@ import {
   SendPromptResponse,
   UploadVideoResponse,
 } from "../Services/api";
-import { Message } from "../App";
+// import { Message } from "../App";
+import { Message } from "../Pages/MainChat";
 import { useState } from "react";
 import { API_BASE_URL, API_BUCKET_URL } from "../config";
 

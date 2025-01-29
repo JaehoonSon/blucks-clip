@@ -5,6 +5,7 @@ from routes.test import test_bp
 from routes.GetVideoRoute import GetVideo_bp
 from routes.UploadVideoRoute import UploadVideo_bp
 from routes.SendPromptRoute import SendPrompt_bp
+from routes.DeleteVideo import DeleteVideo_bp
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -19,6 +20,9 @@ app.register_blueprint(UploadVideo_bp)
 
 # POST /send-prompt
 app.register_blueprint(SendPrompt_bp)
+
+# POST /delete-video
+app.register_blueprint(DeleteVideo_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -102,3 +102,26 @@ export async function sendPrompt(
     response: responseContent,
   };
 }
+
+export interface DeleteVideoRequest {
+  file_id: string;
+}
+
+export interface DeleteVideoResponse {
+  status: boolean;
+}
+
+// Delete video uploaded in genai and gcs
+export async function DeleteVideoAPI(
+  request: DeleteVideoRequest
+): Promise<DeleteVideoResponse> {
+  const response = await fetch(`${API_BASE_URL}/delete-video`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  return await handleApiResponse<DeleteVideoResponse>(response);
+}

@@ -50,6 +50,15 @@ def upload_to_gemini(file_data, mime_type=None, file_name=None):
     # print(f"Uploaded file '{file.display_name}' as: {file.uri}")
     return file
 
+def delete_to_gemini(name):
+    genai.delete_file(name=name)
+
+def delete_to_gcs(bucket_name, blob_name):
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name=blob_name)
+    blob.delete()
+
+
 def wait_for_files_active(files):
     """Waits for the given files to be active."""
     print("Waiting for file processing...")

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { API_BUCKET_URL } from "../config";
+import { ChevronDown, X } from "lucide-react";
+import ImageLoader from "./UI/ImageLoader";
 
 interface VideoClipProps {
   videoUrl: string;
   commentary?: string;
   filename?: string;
+  thumbnailUrl?: string;
   timeStamp: {
     start: string;
     end: string;
@@ -13,55 +14,80 @@ interface VideoClipProps {
   initiallyCollapsed?: boolean;
 }
 
+const parseTime = (timeStr: string): number => {
+  const parts = timeStr.split(":").map((part) => parseInt(part, 10));
+  return parts[0] * 3600 + parts[1] * 60 + parts[2];
+};
+
+const formatDuration = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
+
 const VideoClip: React.FC<VideoClipProps> = ({
   videoUrl,
   commentary,
   filename,
+  thumbnailUrl,
   timeStamp,
   initiallyCollapsed = true,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(initiallyCollapsed);
 
+  const startSeconds = parseTime(timeStamp.start);
+  const endSeconds = parseTime(timeStamp.end);
+  const duration = formatDuration(endSeconds - startSeconds);
+
   return (
-    <div className="rounded-xl shadow-sm p-4 border border-gray-100 bg-white mb-2">
-      {commentary && <p className="text-sm text-gray-800 mb-2">{commentary}</p>}
-
-      <div className="flex justify-between items-center mb-2">
-        {filename && <span className="text-xs text-gray-500">{filename}</span>}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="ml-auto flex items-center text-xs text-gray-500"
-        >
-          {isCollapsed ? (
-            <>
-              Expand <ChevronDown className="w-4 h-4 ml-1" />
-            </>
-          ) : (
-            <>
-              Collapse <ChevronUp className="w-4 h-4 ml-1" />
-            </>
-          )}
-        </button>
-      </div>
-
-      {!isCollapsed && (
-        <video
-          controls
-          className="w-full rounded-md mb-2"
-          src={`${videoUrl}&start=${timeStamp.start}&end=${timeStamp.end}`}
-        >
-          Your browser does not support the video tag.
-        </video>
+    <div className="rounded-lg border border-gray-200 bg-white shadow-sm mb-3 w-full">
+      {commentary && (
+        <p className="text-sm text-gray-700 p-4 border-b border-gray-100">
+          {commentary}
+        </p>
       )}
-      {/* {!isCollapsed && (
-        <video id="video" controls>
-          Your browser does not support the video tag.
-        </video>
-      )} */}
 
-      <p className="text-xs text-gray-400 mt-1">
-        {timeStamp.start} {" - "} {timeStamp.end}
-      </p>
+      <div className="flex text-center w-full p-4">
+        {isCollapsed ? (
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className="w-full flex items-center gap-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
+          >
+            <div className="w-16 h-16 object-cover">
+              <ImageLoader fileId={thumbnailUrl} />
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <div className="text-sm font-medium text-gray-900 truncate">
+                {filename}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {duration} • {timeStamp.start}-{timeStamp.end}
+              </div>
+            </div>
+            <ChevronDown className="w-5 h-5 text-gray-400 ml-2" />
+          </button>
+        ) : (
+          <div className="space-y-3 w-full">
+            <div className="flex justify-between items-center mt-2">
+              <div className="text-sm font-medium text-gray-900">
+                {filename}
+              </div>
+              <button
+                onClick={() => setIsCollapsed(true)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <video
+              controls
+              className="w-full rounded-lg aspect-video bg-gray-50"
+              src={`${videoUrl}&start=${timeStamp.start}&end=${timeStamp.end}`}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

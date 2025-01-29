@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from utilities.cloud_upload import model
+from utilities.cloud_action import model
 
 SendPrompt_bp = Blueprint('SendPrompt', __name__)
 
