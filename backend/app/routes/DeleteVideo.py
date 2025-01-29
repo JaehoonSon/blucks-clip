@@ -11,6 +11,6 @@ def get_video():
     file_id = data.get('file_id')
 
     delete_to_gemini(file_id)
-    delete_to_gcs(bucket_name="theblucks-clipper-bucket", blob_name=file_id)
+    # delete_to_gcs(bucket_name="theblucks-clipper-bucket", blob_name=file_id)
 
     return jsonify({"status": True})
