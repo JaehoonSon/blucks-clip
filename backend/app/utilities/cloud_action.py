@@ -20,7 +20,7 @@ model = genai.GenerativeModel(
 )
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-credentials = service_account.Credentials.from_service_account_file("./firestore-key.json")
+credentials = service_account.Credentials.from_service_account_file("./theblucks-mail-c819d4641679.json")
 storage_client = storage.Client(credentials=credentials)
 
 def upload_bytes_to_gcs(bucket_name, destination_blob_name, file_data):

@@ -1,8 +1,9 @@
 from google.cloud import firestore
 from google.oauth2 import service_account
 
-credentials = service_account.Credentials.from_service_account_file("./theblucks-mail-c819d4641679.json")
-project_id = "the-blucks-database"
+creds_path = "./theblucks-mail-c819d4641679.json"
+credentials = service_account.Credentials.from_service_account_file(creds_path)
+project_id = "theblucks-mail"
 db = firestore.Client(project=project_id, credentials=credentials)
 
 def test_user():
