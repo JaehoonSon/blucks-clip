@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "theblucks-mail",
+  "private_key_id": "c4464f20765c38a35a27954ca7245e8eefb3dbc3",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDcz0bGSbCBW1GG\nr9yeWzkwA7bK8WyDKr7Ttwv0dTHeNGYR6HoUfJ8zP9LkYZLdOv/M0yiEDsekW3aj\nsz5WxbeO45axm14j+Yc1SaVdy1hQKFAk7cz1qM3rdk/5MRC1kgTR1/7NFM29A4A8\nLDOGV9kH3Dh6KjDMMdQ+ReQ1/NUiUQH7VcSESSEVAeGRsx4c7En7QSP8HlWR7ixT\n++kOCPS2t5Ic94Z2PG2wzAZI/2Cicez9yBnDUh6EiBwyulpCILxq+b0H2zZ8pkZG\nFd5gWyxnytAKDDn62VSo7XRzGbwwGuAN/UGA7wQgveBXkfPuzqRAMKh86OlCIHFE\nebsOfb+ZAgMBAAECggEAKVctWwaE41MjimH2njdaF6E6YfidZllkbOMCe/xNH9sT\nmRq7cIZ8j+3NIDEcfAsFxWVrWn4h5qWxKqjubPSLj1cQ6aO7FmUraVCmg08E88z4\nZFGZZAz8sK7v/imvhS8Xc+pKrD7O3ip/ocRsySQ9X/ldIZIwnKpfoGEZfvodNVU4\nE8Nscl57PrjZrRK9wvsQacm5O98S/RZWGtlcvlTfdRY0pkSQe4VsnQXKO72qWPp1\nDsOIpm/tM09NCT2BExED/vCl1XKdCWzn1khpqGkRcAq4OYuICQEvBL7xeGhSA1zA\nD3aDIPkklMrqvtOTMNc94l12vwHenmB6Jy0MQMVbWQKBgQD/y90DBNGxeMZY1852\nBArRV7ADeXV2AP35ulqhRlliHZVueEk4iKMfq9OLz85/dMtksASEnWIPeY7o0MxL\nkYPXk1jvERoeh2SDmz0QhUihxWPWppMBmIWjFxOM0gibZ2qrT4+1wAOPKkEejVhY\nQgtfVRPiMYg+sIyiJ0MbLF92LwKBgQDc/Eg41/5ZmDmF2TjYjIhv0QwehBJtOoi6\nxl+RT4887o6jEfDNh6jofIMnx1llO7zbJlGi4JL4vAOVbnqMXLJHMhSf76a2JbQ8\nMhTaBelmrwAxbGiJs0uOZQlNlW3hUpUtr/poFkoFd6/iF7T0gTCfZHhtZ4fwn939\ncG9tkDb8twKBgQDsFPVoQdxfFX7KpHKyzUxGpc2Xh1P3kzbUc0AONOVt/qvaBz5c\n5Q7YvjdChIqra9oElce1taO5cJGLIppK7IRoRGACVSBsKL2GEZKsWrcMRye8BoUL\nJf/A5B1xDLBQ7YOvlICoWA1w5qivT/jHjDz+wYDWdKywXzWMuvveane4lQKBgDji\nYBzxzLF3c+c2gWGM21odL8dzK+MeHDAn/FXFaxO+PM1RQvFFKH+f/Yrxz9s1Q2oO\nNRl+QZbxnuKKa9VRzzpwc8qvv/RHRFvycFenCeu6xIv0YfyAQMTI0Vo9Sumjfm8i\nS40bn7ZEluvWOmhuEPwWusE+00lnfZdNqAFGDEGFAoGAV8lJJhhrN7r3Kg+MTdsF\nm5RMhUfkPTD54sccyyzGM+fI71v+HgYunIFcxfnjFxQLE9AMHRk7eY3DgW1PBpNT\ntZBMLj4ZuEyCWxID/Z7evB5wkv8A4yXFdgso3aibjxFfS7pHXkrePgrLR1wIxOcU\n+FVgQ0fUQMS5Fi+WVFcQiW8=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firestore-access@theblucks-mail.iam.gserviceaccount.com",
+  "client_id": "116303548106725525000",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firestore-access%40theblucks-mail.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
