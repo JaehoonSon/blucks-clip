@@ -6,6 +6,7 @@ from routes.UploadVideoRoute import UploadVideo_bp
 from routes.SendPromptRoute import SendPrompt_bp
 from routes.DeleteVideo import DeleteVideo_bp
 from routes.OAuth import OAuth_bp
+from routes.CreateChatRoute import CreateChat_bp
 import os
 
 app = Flask(__name__)
@@ -29,6 +30,9 @@ app.register_blueprint(DeleteVideo_bp)
 
 # POST /login
 app.register_blueprint(OAuth_bp)
+
+# POST /create-chat
+app.register_blueprint(CreateChat_bp)
 
 
 if __name__ == '__main__':

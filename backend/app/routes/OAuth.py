@@ -4,6 +4,7 @@ from google.auth.transport import requests as google_requests
 import os
 import jwt
 from datetime import datetime, timedelta
+from utilities.database_action import db_add_user
 
 OAuth_bp = Blueprint('oauth', __name__)
 
@@ -64,5 +65,11 @@ def google_login():
 
     # Generate custom JWT token
     custom_token = generate_jwt(user_info)
+    db_add_user(
+        user_id=google_data["sub"],
+        name=google_data.get("name"),
+        email=google_data.get("email"),
+        pfp_url=google_data.get("picture")
+        )
 
     return jsonify({"user": user_info, "token": custom_token})
