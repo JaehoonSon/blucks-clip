@@ -1,13 +1,22 @@
-import { useState } from "react";
-import { PlusIcon, FilmIcon, FolderIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
+import {
+  PlusIcon,
+  FilmIcon,
+  FolderIcon,
+  TrashIcon,
+  EllipsisHorizontalIcon,
+  PencilIcon,
+} from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import { CreateChatAPI, DeleteChatAPI, GetChatsAPI } from "../Services/api";
+import ImageLoader from "../Components/UI/ImageLoader";
 
-interface Chat {
+export interface Chat {
   id: string;
   title: string;
   thumbnail: string;
   videoCount: number;
-  lastModified: Date;
+  lastModified: string;
 }
 
 interface ExportedClip {
@@ -19,10 +28,10 @@ interface ExportedClip {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const [chats, setChats] = useState<Chat[]>([]);
   const [exportedClips] = useState<ExportedClip[]>([
-    // Mock data
     {
       id: "1",
       title: "Awesome Soccer Goal",
@@ -37,15 +46,30 @@ export default function HomePage() {
     },
   ]);
 
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     // Handle file upload logic here
-    navigate("/chat");
-    // const input = document.createElement("input");
-    // input.type = "file";
-    // input.accept = "video/*";
-    // input.multiple = true;
-    // input.click();
+    const res = await CreateChatAPI();
+    navigate(`/chat/${res}`);
   };
+
+  const handleDeleteChat = async (e: React.MouseEvent, chatId: string) => {
+    e.stopPropagation();
+    // Add your delete logic here
+    // console.log("Delete chat:", chatId);
+    const res = await DeleteChatAPI(chatId);
+
+    if (res) {
+      setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
+    }
+  };
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      const chatData = await GetChatsAPI();
+      setChats(chatData);
+    };
+    fetchChats();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,20 +116,64 @@ export default function HomePage() {
             {chats.map((chat) => (
               <div
                 key={chat.id}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+                className="group relative bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                onClick={() => navigate(`/chat/${chat.id}`)}
               >
-                <img
-                  src={chat.thumbnail}
-                  alt={chat.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
+                {/* Context Menu Button */}
+                <div className="absolute right-2 top-2 z-10 context-menu">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === chat.id ? null : chat.id);
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  >
+                    <EllipsisHorizontalIcon className="h-5 w-5 text-gray-600" />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {openMenuId === chat.id && (
+                    <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 min-w-[160px]">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle rename here
+                          setOpenMenuId(null);
+                        }}
+                        className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      >
+                        <PencilIcon className="h-4 w-4 mr-2" />
+                        Rename
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteChat(e, chat.id);
+                          setOpenMenuId(null);
+                        }}
+                        className="w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center"
+                      >
+                        <TrashIcon className="h-4 w-4 mr-2" />
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full h-48 relative overflow-hidden rounded-t-lg">
+                  <ImageLoader />
+                </div>
+
                 <div className="p-4">
-                  <h3 className="font-medium text-gray-900 truncate">
+                  <h3 className="font-medium text-gray-900 truncate pr-6">
                     {chat.title}
                   </h3>
                   <div className="mt-2 flex items-center text-sm text-gray-500">
-                    <FolderIcon className="h-5 w-5 mr-1.5" />
+                    <FolderIcon className="h-5 w-5 mr-1.5 text-gray-400" />
                     <span>{chat.videoCount} videos</span>
+                    <span className="ml-auto text-xs text-gray-400">
+                      {chat.lastModified}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -119,11 +187,11 @@ export default function HomePage() {
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               Exported Clips
             </h2>
-            <div className="flex space-x-4 overflow-x-auto pb-4">
+            <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
               {exportedClips.map((clip) => (
                 <div
                   key={clip.id}
-                  className="bg-white rounded-lg shadow-sm flex-shrink-0 w-64"
+                  className="bg-white rounded-lg shadow-sm flex-shrink-0 w-64 transform transition hover:-translate-y-1"
                 >
                   <div className="relative">
                     <img
@@ -131,7 +199,7 @@ export default function HomePage() {
                       alt={clip.title}
                       className="w-full h-32 object-cover rounded-t-lg"
                     />
-                    <span className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                    <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
                       {clip.duration}
                     </span>
                   </div>

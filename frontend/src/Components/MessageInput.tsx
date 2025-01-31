@@ -9,6 +9,7 @@ import {
 import { Message } from "../Pages/MainChat";
 import { useState } from "react";
 import { API_BASE_URL, API_BUCKET_URL } from "../config";
+import { useParams } from "react-router-dom";
 
 type MessageProps = {
   textInput: string;
@@ -29,6 +30,7 @@ const MessageInput = ({
   history,
   setHistory,
 }: MessageProps) => {
+  const { chat_id } = useParams<{ chat_id: string }>();
   const [error, setError] = useState<string>("");
   const [isPromptProcessing, setPromptProcessing] = useState<boolean>(false);
   const getSelectedVideos = (): UploadVideoResponse[] => {
@@ -76,12 +78,24 @@ const MessageInput = ({
     const selectedVideos = getSelectedVideos();
     setTextInput("");
 
+    if (selectedVideos.length == 0 && chat_id != null) {
+      const body: SendPromptRequest = {
+        prompt: textInput,
+        chat_id: chat_id,
+        file_ids: [],
+      };
+      const res: SendPromptResponse = await sendPrompt(body);
+      assistantMessage.mainMessage = res.message;
+    }
+
     const videoPromises = selectedVideos.map((video) => {
       return new Promise<void>(async (resolve, reject) => {
         try {
           // Send prompt for each video
+          if (chat_id == null) return;
           const body: SendPromptRequest = {
             prompt: textInput,
+            chat_id: chat_id,
             file_ids: [video],
           };
           const res: SendPromptResponse = await sendPrompt(body);

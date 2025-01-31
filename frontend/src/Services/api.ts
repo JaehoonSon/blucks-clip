@@ -1,4 +1,6 @@
 import { API_BASE_URL } from "../config";
+import { Chat } from "../Pages/HomePage";
+import { Message } from "../Pages/MainChat";
 
 // Corrected interface name (fixed typo)
 export interface UploadVideoResponse {
@@ -13,6 +15,7 @@ export interface UploadVideoResponse {
 // Keep `file_ids` as `UploadVideoResponse[]` if that's what you need
 export interface SendPromptRequest {
   prompt: string;
+  chat_id: string;
   file_ids: UploadVideoResponse[];
 }
 
@@ -62,12 +65,19 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
 }
 
 // Upload video function
-export async function uploadVideo(file: File): Promise<UploadVideoResponse> {
+export async function uploadVideo(
+  file: File,
+  chat_id: string
+): Promise<UploadVideoResponse> {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("chat_id", chat_id);
 
   const response = await fetch(`${API_BASE_URL}/upload-video`, {
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
     body: formData,
   });
 
@@ -81,26 +91,21 @@ export async function sendPrompt(
   const response = await fetch(`${API_BASE_URL}/send-prompt`, {
     method: "POST",
     headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(request),
   });
 
-  // The API response has a 'response' field which is a JSON string
-  const jsonResponse = await handleApiResponse<{ response: string }>(response);
+  const data: SendPromptResponse = await response.json();
 
-  // Parse the nested JSON string in 'response'
-  const parsedData = JSON.parse(jsonResponse.response);
+  // Extracting the commentary from the response
+  const commentaryData = data.response.map((item) => item.commentary);
 
-  // Extract 'message' and 'content' from the parsed data
-  const message: string = parsedData.message;
-  const responseContent: PromptResponse[] = parsedData.content;
-
-  // Return an object matching the SendPromptResponse interface
-  return {
-    message,
-    response: responseContent,
-  };
+  // You can now use `commentaryData` or process it as needed
+  console.log(commentaryData);
+  console.log(data);
+  return data;
 }
 
 export interface DeleteVideoRequest {
@@ -124,4 +129,109 @@ export async function DeleteVideoAPI(
   });
 
   return await handleApiResponse<DeleteVideoResponse>(response);
+}
+
+export async function CreateChatAPI(): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}/create-chat`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await response.json();
+  return data.chat_id;
+}
+
+export interface RetrieveVideoRequest {
+  chat_id: string;
+}
+
+export async function RetrieveVideoAPI(
+  request: RetrieveVideoRequest
+): Promise<UploadVideoResponse[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/get-uploaded-video?chat_id=${request.chat_id}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.json();
+}
+
+export async function GetChatsAPI(): Promise<Chat[]> {
+  const response = await fetch(`${API_BASE_URL}/get-chats`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  const rawChats = await response.json();
+
+  return rawChats.map((chat: any) => ({
+    id: chat.id,
+    title: chat.chatName || "Untitled Chat",
+    videoCount: chat.uploadedVideos?.length || 0,
+  }));
+}
+
+export async function GetMessagesAPI(chat_id: string): Promise<Message[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/get-messages?chat_id=${chat_id}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+  console.log(data);
+
+  // Map backend response to Message interface
+  return data.map((message: any) => ({
+    id: message.id, // Convert string ID to number (watch for UUID limitations)
+    mainMessage: message.MainMessage,
+    role: message.role,
+    timeStamp: message.timestamp,
+    Clips: (message.Clips || []) // Handle undefined/null clips
+      .filter((clip: any) => clip?.id) // Only keep clips with IDs
+      .map((clip: any) => ({
+        id: clip.id,
+        commentary: clip.commentary || "No commentary available",
+        videoUrl: clip.videoUrl,
+        filename: clip.filename || "Untitled Clip",
+        timeStamp: {
+          start: clip.start || "00:00",
+          end: clip.end || "00:00",
+        },
+      })),
+  }));
+}
+
+export async function DeleteChatAPI(chat_id: string): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}/delete-chat`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      chat_id: chat_id,
+    }),
+  });
+
+  if (response.ok) return true;
+
+  return false;
 }

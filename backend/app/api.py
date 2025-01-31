@@ -7,9 +7,15 @@ from routes.SendPromptRoute import SendPrompt_bp
 from routes.DeleteVideo import DeleteVideo_bp
 from routes.OAuth import OAuth_bp
 from routes.CreateChatRoute import CreateChat_bp
+from routes.ChatActions import ChatActions_bp
 import os
+from flask_jwt_extended import JWTManager
+from datetime import timedelta
 
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET")  # Ensure this is set and kept secret
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)  # Token valid for 1 hour
+jwt = JWTManager(app)
 app.secret_key = os.urandom(24)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -33,6 +39,9 @@ app.register_blueprint(OAuth_bp)
 
 # POST /create-chat
 app.register_blueprint(CreateChat_bp)
+
+# POST multiple routes
+app.register_blueprint(ChatActions_bp)
 
 
 if __name__ == '__main__':

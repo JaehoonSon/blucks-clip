@@ -44,6 +44,7 @@ const TypingDots = () => (
 );
 
 const ChatMessages = ({ history }: MessageProps) => {
+  console.log("issue", history);
   return (
     <>
       {/* Chat Messages */}

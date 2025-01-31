@@ -61,7 +61,7 @@ const VideoClip: React.FC<VideoClipProps> = ({
                 {filename}
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                {duration} • {timeStamp.start}-{timeStamp.end}
+                {/* {duration} • {timeStamp.start}-{timeStamp.end} */}
               </div>
             </div>
             <ChevronDown className="w-5 h-5 text-gray-400 ml-2" />

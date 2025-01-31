@@ -1,4 +1,4 @@
-import { uploadVideo, UploadVideoResponse } from "../Services/api";
+import { UploadVideoResponse } from "../Services/api";
 import { X, Check, Video, Delete, Loader2 } from "lucide-react";
 import { DeleteVideoAPI } from "../Services/api";
 import { useState } from "react";

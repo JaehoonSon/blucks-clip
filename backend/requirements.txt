@@ -8,3 +8,4 @@ python-dotenv
 google-auth>=2.0.0
 pyjwt
 google-cloud-firestore
+flask-jwt-extended

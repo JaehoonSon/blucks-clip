@@ -1,26 +1,17 @@
-import React, { useState } from "react";
-import {
-  Play,
-  Plus,
-  Video,
-  UserIcon,
-  Bot,
-  PlayIcon,
-  Paperclip,
-  Sparkles,
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Plus, Sparkles } from "lucide-react";
 import UploadVideos from "../Components/UploadVideos";
 import {
-  PromptResponse,
+  GetMessagesAPI,
+  RetrieveVideoAPI,
   TimeStamp,
-  uploadVideo,
   UploadVideoResponse,
 } from "../Services/api";
 import UploadedVideos from "../Components/UploadedVideos";
 import MessageInput from "../Components/MessageInput";
 import ChatMessages from "../Components/ChatMessages";
-import { API_BASE_URL, API_BUCKET_URL } from "../config";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { API_BASE_URL } from "../config";
+import { useParams } from "react-router-dom";
 
 interface Clip {
   id: number;
@@ -37,16 +28,17 @@ interface SuggestedPrompt {
 }
 
 export interface Message {
-  id: number;
+  id: string;
   mainMessage: string;
   role: "user" | "assistant";
-  message?: string; // only for users
+  message?: string;
   timeStamp: string;
   Clips?: Clip[];
   typing?: boolean;
 }
 
 function MainChat() {
+  const { chat_id } = useParams<{ chat_id: string }>(); // Get chat_id from URL params
   const [textInput, setTextInput] = useState<string>("");
   const [uploadedVideos, setUploadedVideos] = useState<UploadVideoResponse[]>([
     {
@@ -79,7 +71,7 @@ function MainChat() {
   ]);
   const [history, setHistory] = useState<Message[]>([
     {
-      id: 1,
+      id: "1",
       role: "assistant",
       timeStamp: "10:00 AM",
       mainMessage: "Video of something",
@@ -97,6 +89,13 @@ function MainChat() {
         },
       ],
     },
+    {
+      id: "2",
+      role: "user",
+      timeStamp: "10:00 AM",
+      mainMessage: "Video of something",
+      Clips: [],
+    },
   ]);
 
   const suggestedPrompts: SuggestedPrompt[] = [
@@ -105,6 +104,25 @@ function MainChat() {
     { id: "3", text: "Key takeaway" },
     { id: "4", text: "Action sequence" },
   ];
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      console.log("running");
+      if (!chat_id) return;
+      const videoData = await RetrieveVideoAPI({ chat_id: chat_id });
+      setUploadedVideos(videoData);
+    };
+    fetchVideos();
+  }, [chat_id]);
+
+  useEffect(() => {
+    const getMessages = async () => {
+      if (!chat_id) return;
+      const history: Message[] = await GetMessagesAPI(chat_id);
+      setHistory(history);
+    };
+    getMessages();
+  }, []);
 
   const handlePromptClick = (prompt: string) => {
     setTextInput(prompt);

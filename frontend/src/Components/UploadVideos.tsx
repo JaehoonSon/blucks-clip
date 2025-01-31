@@ -1,6 +1,7 @@
 import { Upload } from "lucide-react";
 import { uploadVideo } from "../Services/api";
 import { UploadVideoResponse } from "../Services/api";
+import { useParams } from "react-router-dom";
 
 type VideoProps = {
   uploadedVideos: UploadVideoResponse[];
@@ -10,6 +11,8 @@ type VideoProps = {
 };
 
 const UploadVideos = ({ uploadedVideos, setUploadedVideos }: VideoProps) => {
+  const { chat_id } = useParams();
+  if (chat_id == null) return <></>;
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log("test");
     if (!e.target.files) return;
@@ -19,7 +22,7 @@ const UploadVideos = ({ uploadedVideos, setUploadedVideos }: VideoProps) => {
 
     for (const file of files) {
       try {
-        const response = await uploadVideo(file);
+        const response = await uploadVideo(file, chat_id);
         response.selected = true;
         setUploadedVideos((prevUploadedVideos) => [
           ...prevUploadedVideos,

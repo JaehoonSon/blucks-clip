@@ -10,7 +10,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/chat" element={<MainChat />} />
+          <Route path="/chat/:chat_id" element={<MainChat />} />
           <Route
             path="/"
             element={

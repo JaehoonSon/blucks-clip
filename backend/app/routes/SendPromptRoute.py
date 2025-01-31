@@ -1,16 +1,47 @@
 from flask import Blueprint, request, jsonify, send_file
 from utilities.cloud_action import model, upload_to_gemini, get_video_from_bucket, check_file_exists_genai, check_file_blob_exists_gcs
+from utilities.database_action import db_add_message, db_add_clip_to_message
+from flask_jwt_extended import jwt_required, get_jwt_identity
+import json
 
 SendPrompt_bp = Blueprint('SendPrompt', __name__)
 
 @SendPrompt_bp.route('/send-prompt', methods=['POST'])
+@jwt_required()
 def send_prompt():
+    user_id = get_jwt_identity()
     data = request.json
     file_ids = data.get('file_ids')
     print(file_ids)
     prompt = data.get('prompt')
+    chat_id = data.get("chat_id")
+    db_add_message(
+        user_id=user_id,
+        chat_id=chat_id,
+        role="user",
+        main_message=prompt
+        )
     if not file_ids or not prompt or not isinstance(file_ids, list):
-        return jsonify({'error': 'List of File IDs and prompt are required'}), 400
+        chat_session = model.start_chat()
+        response = chat_session.send_message("""
+            You are an expert MLB sports analyzer.
+            The user did not provide a video to respond, so your job is to kindly tell user to request for the video and answer any questions.
+            If the user does not attach a valid MLB video, respond *only* in the format `{"message": "[friendly request to share the file]}"
+            - Use exciting, friendly, spartan-tone language
+        """)
+        # return jsonify({'response': response.text})
+        dict = json.loads(response.text)
+        response_data = {
+            "message": dict["message"],
+            "response": []
+        }
+        message_id = db_add_message(
+            user_id=user_id,
+            chat_id=chat_id,
+            role="assistant",
+            main_message=dict["message"]
+        )
+        return jsonify(response_data)
     
     # if not check_file_exists_genai(file_ids[0].get("file_id")): 
     #     if not check_file_blob_exists_gcs(bucket_name="theblucks-clipper-bucket", blob_name=file_ids[0].get("file_id")):
@@ -65,5 +96,35 @@ def send_prompt():
 
     chat_session = model.start_chat(history=chat_parts)
     response = chat_session.send_message(prompt_with_format)
-    # print(chat_session.history)
-    return jsonify({'response': response.text})
+    print(response.text, flush=True)
+    dict = json.loads(response.text)
+    response_data = {
+        "message": dict["message"],
+        "response": [
+            {
+                "commentary": item["commentary"],
+                "timestamp": item["timestamp"]
+            }
+            for item in dict["content"]
+        ]
+    }
+    message_id = db_add_message(
+        user_id=user_id,
+        chat_id=chat_id,
+        role="assistant",
+        main_message=dict["message"]
+        )
+    
+    for clip in response_data["response"]:
+        db_add_clip_to_message(user_id=user_id,
+                               chat_id=chat_id,
+                               message_id=message_id,
+                               clip_id=file_ids[0].get("file_id"),
+                               commentary=clip["commentary"],
+                               video_url=f"https://generativelanguage.googleapis.com/v1beta/{file_ids[0].get('file_id')}",
+                               start_time=clip["timestamp"]["start"],
+                               end_time=clip["timestamp"]["end"],
+                               filename=file_ids[0].get("file_name")
+                               )
+
+    return jsonify(response_data)
