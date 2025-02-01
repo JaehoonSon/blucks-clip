@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from utilities.database_action import db_get_video_in_chat, db_get_chats, db_delete_chat, db_get_messages
+from utilities.database_action import db_get_video_in_chat, db_get_chats, db_delete_chat, db_get_messages, db_get_profile
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import io
 
@@ -50,6 +50,12 @@ def GetMessages():
 
     return res, 200
 
+@ChatActions_bp.route('/get-profile', methods=["GET"])
+@jwt_required()
+def GetProfile():
+    user_id = get_jwt_identity()
+    data = db_get_profile(user_id=user_id)
+    return data, 200
 
 @ChatActions_bp.route('/delete-chat', methods=['DELETE'])
 @jwt_required()

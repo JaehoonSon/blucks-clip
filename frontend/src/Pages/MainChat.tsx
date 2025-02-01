@@ -41,61 +41,61 @@ function MainChat() {
   const { chat_id } = useParams<{ chat_id: string }>(); // Get chat_id from URL params
   const [textInput, setTextInput] = useState<string>("");
   const [uploadedVideos, setUploadedVideos] = useState<UploadVideoResponse[]>([
-    {
-      file_id: "files/hegg7ank9bph",
-      file_name: "videoplayback (1).mp4",
-      file_uri:
-        "https://generativelanguage.googleapis.com/v1beta/files/hegg7ank9bph",
-      message: "File uploaded successfully",
-      mime_type: "video/mp4",
-      selected: true,
-    },
-    {
-      file_id: "files/2h7whorqqy6t",
-      file_name: "videoplayback (2).mp4",
-      file_uri:
-        "https://generativelanguage.googleapis.com/v1beta/files/2h7whorqqy6t",
-      message: "File uploaded successfully",
-      mime_type: "video/mp4",
-      selected: true,
-    },
-    {
-      file_id: "files/tmzfv9m98ls9",
-      file_name: "White Basketball (2).mp4",
-      file_uri:
-        "https://generativelanguage.googleapis.com/v1beta/files/tmzfv9m98ls9",
-      message: "File uploaded successfully",
-      mime_type: "video/mp4",
-      selected: true,
-    },
+    // {
+    //   file_id: "files/hegg7ank9bph",
+    //   file_name: "videoplayback (1).mp4",
+    //   file_uri:
+    //     "https://generativelanguage.googleapis.com/v1beta/files/hegg7ank9bph",
+    //   message: "File uploaded successfully",
+    //   mime_type: "video/mp4",
+    //   selected: true,
+    // },
+    // {
+    //   file_id: "files/2h7whorqqy6t",
+    //   file_name: "videoplayback (2).mp4",
+    //   file_uri:
+    //     "https://generativelanguage.googleapis.com/v1beta/files/2h7whorqqy6t",
+    //   message: "File uploaded successfully",
+    //   mime_type: "video/mp4",
+    //   selected: true,
+    // },
+    // {
+    //   file_id: "files/tmzfv9m98ls9",
+    //   file_name: "White Basketball (2).mp4",
+    //   file_uri:
+    //     "https://generativelanguage.googleapis.com/v1beta/files/tmzfv9m98ls9",
+    //   message: "File uploaded successfully",
+    //   mime_type: "video/mp4",
+    //   selected: true,
+    // },
   ]);
   const [history, setHistory] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      timeStamp: "10:00 AM",
-      mainMessage: "Video of something",
-      Clips: [
-        {
-          id: 1,
-          commentary: "HOME RUN!",
-          filename: "baseball",
-          collapsed: true,
-          videoUrl: `${API_BASE_URL}/get-video?file_id=files/669lpd8zkw2t&mimetype=video/mp4`,
-          timeStamp: {
-            start: "00:00:01",
-            end: "00:00:03",
-          },
-        },
-      ],
-    },
-    {
-      id: "2",
-      role: "user",
-      timeStamp: "10:00 AM",
-      mainMessage: "Video of something",
-      Clips: [],
-    },
+    // {
+    //   id: "1",
+    //   role: "assistant",
+    //   timeStamp: "10:00 AM",
+    //   mainMessage: "Video of something",
+    //   Clips: [
+    //     {
+    //       id: 1,
+    //       commentary: "HOME RUN!",
+    //       filename: "baseball",
+    //       collapsed: true,
+    //       videoUrl: `${API_BASE_URL}/get-video?file_id=files/669lpd8zkw2t&mimetype=video/mp4`,
+    //       timeStamp: {
+    //         start: "00:00:01",
+    //         end: "00:00:03",
+    //       },
+    //     },
+    //   ],
+    // },
+    // {
+    //   id: "2",
+    //   role: "user",
+    //   timeStamp: "10:00 AM",
+    //   mainMessage: "Video of something",
+    //   Clips: [],
+    // },
   ]);
 
   const suggestedPrompts: SuggestedPrompt[] = [
@@ -133,7 +133,7 @@ function MainChat() {
       <div className="mx-auto h-screen flex flex-col lg:flex-row">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col bg-gray-50 shadow-2xl overflow-hidden">
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto h-screen">
             <ChatMessages history={history} />
           </div>
 

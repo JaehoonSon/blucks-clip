@@ -40,14 +40,14 @@ const VideoClip: React.FC<VideoClipProps> = ({
   const duration = formatDuration(endSeconds - startSeconds);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm mb-3 w-full">
+    <div className="rounded-lg border border-gray-200 bg-white shadow-sm mb-3 w-[30rem]">
       {commentary && (
-        <p className="text-sm text-gray-700 p-4 border-b border-gray-100">
+        <p className="text-sm text-gray-700 p-4 border-b border-gray-100 w-[30rem]">
           {commentary}
         </p>
       )}
 
-      <div className="flex text-center w-full p-4">
+      <div className="flex text-center p-4 w-[30rem]">
         {isCollapsed ? (
           <button
             onClick={() => setIsCollapsed(false)}

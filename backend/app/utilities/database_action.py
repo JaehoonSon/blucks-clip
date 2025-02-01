@@ -154,6 +154,15 @@ def db_get_video_in_chat(user_id, chat_id):
     else:
         return None
     
+def db_get_profile(user_id):
+    user_ref = db.collection('User').document(user_id)
+    user_doc = user_ref.get()
+    print(user_doc, flush=True)
+    if user_doc.exists:
+        return user_doc.to_dict()
+    else:
+        return {}
+    
 def db_delete_chat(user_id, chat_id):
     try:
         chat_ref = db.collection('User').document(user_id).collection('Chats').document(chat_id)        

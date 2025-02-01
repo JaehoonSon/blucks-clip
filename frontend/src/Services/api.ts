@@ -2,6 +2,17 @@ import { API_BASE_URL } from "../config";
 import { Chat } from "../Pages/HomePage";
 import { Message } from "../Pages/MainChat";
 
+class APIError extends Error {
+  constructor(
+    public status: number,
+    public statusText: string,
+    message?: string
+  ) {
+    super(message || `API Error: ${status} ${statusText}`);
+    this.name = "APIError";
+  }
+}
+
 // Corrected interface name (fixed typo)
 export interface UploadVideoResponse {
   file_id: string;
@@ -81,6 +92,14 @@ export async function uploadVideo(
     body: formData,
   });
 
+  if (!response.ok) {
+    throw new APIError(
+      response.status,
+      response.statusText
+      // await response.text()
+    );
+  }
+
   return await handleApiResponse<UploadVideoResponse>(response);
 }
 
@@ -96,6 +115,14 @@ export async function sendPrompt(
     },
     body: JSON.stringify(request),
   });
+
+  if (!response.ok) {
+    throw new APIError(
+      response.status,
+      response.statusText
+      // await response.text()
+    );
+  }
 
   const data: SendPromptResponse = await response.json();
 
@@ -128,6 +155,14 @@ export async function DeleteVideoAPI(
     body: JSON.stringify(request),
   });
 
+  if (!response.ok) {
+    throw new APIError(
+      response.status,
+      response.statusText
+      // await response.text()
+    );
+  }
+
   return await handleApiResponse<DeleteVideoResponse>(response);
 }
 
@@ -139,6 +174,14 @@ export async function CreateChatAPI(): Promise<boolean> {
       "Content-Type": "application/json",
     },
   });
+
+  if (!response.ok) {
+    throw new APIError(
+      response.status,
+      response.statusText
+      // await response.text()
+    );
+  }
 
   const data = await response.json();
   return data.chat_id;
@@ -162,7 +205,41 @@ export async function RetrieveVideoAPI(
     }
   );
 
+  if (!response.ok) {
+    throw new APIError(
+      response.status,
+      response.statusText
+      // await response.text()
+    );
+  }
+
   return response.json();
+}
+
+export interface Profile {
+  email: string;
+  name: string;
+  pfp_url: string;
+}
+
+export async function GetProfileAPI(): Promise<Profile> {
+  const response = await fetch(`${API_BASE_URL}/get-profile`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new APIError(
+      response.status,
+      response.statusText
+      // await response.text()
+    );
+  }
+
+  return await response.json();
 }
 
 export async function GetChatsAPI(): Promise<Chat[]> {
@@ -173,6 +250,14 @@ export async function GetChatsAPI(): Promise<Chat[]> {
       "Content-Type": "application/json",
     },
   });
+
+  if (!response.ok) {
+    throw new APIError(
+      response.status,
+      response.statusText
+      // await response.text()
+    );
+  }
 
   const rawChats = await response.json();
 
@@ -194,6 +279,14 @@ export async function GetMessagesAPI(chat_id: string): Promise<Message[]> {
       },
     }
   );
+
+  if (!response.ok) {
+    throw new APIError(
+      response.status,
+      response.statusText
+      // await response.text()
+    );
+  }
 
   const data = await response.json();
   console.log(data);

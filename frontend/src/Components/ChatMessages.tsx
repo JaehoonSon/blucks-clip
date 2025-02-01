@@ -2,6 +2,8 @@
 import { Message } from "../Pages/MainChat";
 import { UserIcon, Bot } from "lucide-react";
 import VideoClip from "./VideoClip";
+import { useState, useEffect } from "react";
+import { GetProfileAPI, Profile } from "../Services/api";
 
 type MessageProps = {
   history: Message[];
@@ -42,16 +44,35 @@ const TypingDots = () => (
     </div>
   </div>
 );
-
 const ChatMessages = ({ history }: MessageProps) => {
-  console.log("issue", history);
+  const [profile, setProfile] = useState<Profile>();
+  useEffect(() => {
+    const GetProfile = async () => {
+      const res = await GetProfileAPI();
+      setProfile(res);
+    };
+    GetProfile();
+  }, []);
+
   return (
     <>
       {/* Chat Messages */}
-      <div className="flex-grow mt-4 overflow-y-auto mx-40">
+      <div
+        className={`flex-grow mt-4 overflow-y-auto mx-40 flex flex-col ${
+          history.length === 0 ? "justify-center items-center h-full" : ""
+        }`}
+      >
+        {history.length === 0 && ( // Show greeting only if history is empty
+          <div className="text-center">
+            <p className="text-lg text-gray-800">
+              Hey! Upload your sports video, and I'll find the best moments for
+              you.
+            </p>
+          </div>
+        )}
         {history.map((message) => {
           const isUser = message.role === "user";
-          const messageClasses = `rounded-xl p-4 ${
+          const messageClasses = `rounded-xl ${
             isUser ? "bg-transparent text-right" : "bg-transparent"
           }`;
 
@@ -66,11 +87,7 @@ const ChatMessages = ({ history }: MessageProps) => {
                   } items-start max-w-xl`}
                 >
                   <div className="flex-shrink-0">
-                    {isUser ? (
-                      <UserIcon className="w-8 h-8 text-green-500" />
-                    ) : (
-                      <Bot className="w-8 h-8 text-blue-500" />
-                    )}
+                    {isUser ? <></> : <Bot className="w-8 h-8 text-blue-500" />}
                   </div>
 
                   <div className="mx-2 w-[40rem]">
@@ -81,9 +98,6 @@ const ChatMessages = ({ history }: MessageProps) => {
                         <div className={messageClasses}>
                           <p className="text-sm text-gray-800 mb-2">
                             {message.mainMessage}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {message.timeStamp}
                           </p>
                         </div>
 
