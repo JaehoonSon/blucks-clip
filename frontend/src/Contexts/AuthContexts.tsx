@@ -7,7 +7,6 @@ import {
   useState,
 } from "react";
 import api from "../Services/axios";
-import { useNavigate } from "react-router-dom";
 
 interface User {
   id: string;
@@ -37,7 +36,6 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const navigate = useNavigate();
 
   const logout = useCallback(async () => {
     try {

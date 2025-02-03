@@ -34,10 +34,10 @@ const MessageInput = ({
   const { chat_id } = useParams<{ chat_id: string }>();
   const [error, setError] = useState<string>("");
   const [isPromptProcessing, setPromptProcessing] = useState<boolean>(false);
-  const navigate = useNavigate();
   const getSelectedVideos = (): UploadVideoResponse[] => {
     return uploadedVideos.filter((video) => video.selected);
   };
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,18 +53,26 @@ const MessageInput = ({
     }
     setPromptProcessing(true);
 
-    // For new chats, create the chat first
-
-    console.log("chat_id", chat_id);
     let currentChatId = chat_id;
+
+    // If it's a new chat, create the chat first
     if (chat_id === "new") {
-      const createChatResponse = await api.post("/create-chat", {
-        message: textInput,
-        chatName: textInput.slice(0, 30) + (textInput.length > 30 ? "..." : ""),
-      });
-      currentChatId = createChatResponse.data.chat_id;
-      // Need to find a way to make that seamless flow
-      navigate(`/chat/${currentChatId}`);
+      try {
+        const createChatResponse = await api.post("/create-chat", {
+          message: textInput,
+          chatName:
+            textInput.slice(0, 30) + (textInput.length > 30 ? "..." : ""),
+        });
+        currentChatId = createChatResponse.data.chat_id;
+        navigate(`/chat/${currentChatId}`, {
+          replace: true,
+          state: { pendingPrompt: textInput },
+        });
+      } catch (error) {
+        console.error("Failed to create chat:", error);
+        setPromptProcessing(false);
+        return;
+      }
     }
 
     // Prepare user message
@@ -168,6 +176,7 @@ const MessageInput = ({
         return msg;
       })
     );
+
     setPromptProcessing(false);
   };
   return (

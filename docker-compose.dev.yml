@@ -2,7 +2,6 @@ version: "3.8"
 
 services:
   backend:
-    network_mode: host
     networks:
       - shared-network
     build:
@@ -17,7 +16,6 @@ services:
     command: flask --app ./app/api run --port=5001
 
   frontend:
-    network_mode: host
     networks:
       - shared-network
     build:
