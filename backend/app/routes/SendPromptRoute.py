@@ -93,38 +93,50 @@ def send_prompt():
     ]
 
     prompt_with_format = f"{prompt}\n\nReturn ONLY the JSON as described above."
+    try:
+        chat_session = model.start_chat(history=chat_parts)
+        response = chat_session.send_message(prompt_with_format)
+        print(response.text, flush=True)
+        dict = json.loads(response.text)
+        response_data = {
+            "message": dict["message"],
+            "response": [
+                {
+                    "commentary": item["commentary"],
+                    "timestamp": item["timestamp"]
+                }
+                for item in dict["content"]
+            ]
+        }
+        message_id = db_add_message(
+            user_id=user_id,
+            chat_id=chat_id,
+            role="assistant",
+            main_message=dict["message"]
+            )
+        
+        for clip in response_data["response"]:
+            db_add_clip_to_message(user_id=user_id,
+                                chat_id=chat_id,
+                                message_id=message_id,
+                                clip_id=file_ids[0].get("file_id"),
+                                commentary=clip["commentary"],
+                                video_url=f"https://generativelanguage.googleapis.com/v1beta/{file_ids[0].get('file_id')}",
+                                start_time=clip["timestamp"]["start"],
+                                end_time=clip["timestamp"]["end"],
+                                filename=file_ids[0].get("file_name")
+                                )
 
-    chat_session = model.start_chat(history=chat_parts)
-    response = chat_session.send_message(prompt_with_format)
-    print(response.text, flush=True)
-    dict = json.loads(response.text)
-    response_data = {
-        "message": dict["message"],
-        "response": [
-            {
-                "commentary": item["commentary"],
-                "timestamp": item["timestamp"]
-            }
-            for item in dict["content"]
-        ]
-    }
-    message_id = db_add_message(
-        user_id=user_id,
-        chat_id=chat_id,
-        role="assistant",
-        main_message=dict["message"]
-        )
-    
-    for clip in response_data["response"]:
-        db_add_clip_to_message(user_id=user_id,
-                               chat_id=chat_id,
-                               message_id=message_id,
-                               clip_id=file_ids[0].get("file_id"),
-                               commentary=clip["commentary"],
-                               video_url=f"https://generativelanguage.googleapis.com/v1beta/{file_ids[0].get('file_id')}",
-                               start_time=clip["timestamp"]["start"],
-                               end_time=clip["timestamp"]["end"],
-                               filename=file_ids[0].get("file_name")
-                               )
-
-    return jsonify(response_data)
+        return jsonify(response_data)
+    except Exception as e:
+        message = "Error occured. Please re-upload your videos or restart the chat."
+        db_add_message(
+            user_id=user_id,
+            chat_id=chat_id,
+            role="assistant",
+            main_message=message
+            )
+        return jsonify({
+            "message": message,
+            "response": []
+        })

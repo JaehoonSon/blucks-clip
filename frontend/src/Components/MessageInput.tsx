@@ -12,6 +12,19 @@ import { API_BASE_URL, API_BUCKET_URL } from "../config";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../Services/axios";
 
+const characters =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+function generateString(length: number) {
+  let result = " ";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+  return result;
+}
+
 type MessageProps = {
   textInput: string;
   setTextInput: React.Dispatch<React.SetStateAction<string>>;
@@ -76,10 +89,10 @@ const MessageInput = ({
     }
 
     // Prepare user message
-    const userMessageId =
-      history.reduce((max, msg) => Math.max(max, msg.id), 0) + 1;
+    // const userMessageId =
+    //   history.reduce((max, msg) => Math.max(max, msg.id), 0) + 1;
     const userMessage: Message = {
-      id: userMessageId,
+      id: generateString(4),
       mainMessage: textInput,
       role: "user",
       message: textInput,
@@ -88,9 +101,8 @@ const MessageInput = ({
     setHistory((prevHistory) => [...prevHistory, userMessage]);
 
     // Prepare assistant message with typing indicator
-    const assistantMessageId = userMessageId + 1;
     const assistantMessage: Message = {
-      id: assistantMessageId,
+      id: generateString(5),
       mainMessage: "",
       role: "assistant",
       timeStamp: new Date().toLocaleTimeString(),
@@ -145,7 +157,7 @@ const MessageInput = ({
           // Update assistant message's Clips immutably
           setHistory((prevHistory) =>
             prevHistory.map((msg) => {
-              if (msg.id === assistantMessageId) {
+              if (msg.id === assistantMessage.id) {
                 return {
                   ...msg,
                   Clips: [...(msg.Clips || []), ...newClips],
@@ -169,7 +181,7 @@ const MessageInput = ({
     // Remove typing indicator from assistant message
     setHistory((prevHistory) =>
       prevHistory.map((msg) => {
-        if (msg.id === assistantMessageId) {
+        if (msg.id === assistantMessage.id) {
           const { typing, ...rest } = msg;
           return rest; // Return the message without the typing property
         }

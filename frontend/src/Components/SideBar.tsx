@@ -8,9 +8,16 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import api from "../Services/axios";
-import { UploadVideoResponse } from "../Services/api";
+import {
+  CreateChatAPI,
+  DeleteChatAPI,
+  GetProfileAPI,
+  Profile,
+  UploadVideoResponse,
+} from "../Services/api";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../Contexts/AuthContexts";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export interface Chat {
   chatName: string;
@@ -25,6 +32,29 @@ const SideBar = () => {
   const location = useLocation();
   const chatId = useParams<{ chat_id: string }>().chat_id;
   const { logout } = useAuth();
+
+  const [profile, setProfile] = useState<Profile>();
+  useEffect(() => {
+    const GetProfile = async () => {
+      const res = await GetProfileAPI();
+      setProfile(res);
+    };
+    GetProfile();
+  }, []);
+
+  const [openMenuId, setOpenMenuId] = useState<string>("");
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (openMenuId !== "") {
+        const isInside = event.target.closest(`[data-chat-id="${openMenuId}"]`);
+        if (!isInside) {
+          setOpenMenuId("");
+        }
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openMenuId]);
 
   // Fetch Data
   useEffect(() => {
@@ -45,12 +75,24 @@ const SideBar = () => {
 
   const [selectedChat, setSelectedChat] = useState<string>();
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
-  const handleCreateNew = () => {
-    navigate("/chat/new");
+  const handleNewChat = async () => {
+    // Handle file upload logic here
+    const res = await CreateChatAPI();
+    navigate(`/chat/${res}`);
   };
   const handleChatClick = (chatId: string) => {
     setSelectedChat(chatId);
     navigate(`/chat/${chatId}`);
+  };
+
+  const handleRenameChat = (chat_id: string) => {};
+
+  const handleDeleteChat = async (chat_id: string) => {
+    const res = await DeleteChatAPI(chat_id);
+
+    if (res) {
+      setChats((prevChats) => prevChats.filter((chat) => chat.id !== chat_id));
+    }
   };
 
   return (
@@ -84,7 +126,7 @@ const SideBar = () => {
         )}
 
         <button
-          onClick={handleCreateNew}
+          onClick={handleNewChat}
           className="w-full flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <FaPlus className="text-lg" />
@@ -93,31 +135,88 @@ const SideBar = () => {
       </div>
 
       {/* Chat History */}
+      {/* Chat History */}
       <div className="flex-1 overflow-y-auto">
         {!isCollapsed && (
           <nav className="space-y-1 p-2">
             {chats.map((chat) => (
-              <button
+              <div
                 key={chat.id}
-                onClick={() => handleChatClick(chat.id)}
-                className={`w-full text-left flex items-center gap-3 p-3 rounded-lg transition-colors border-2 ${
+                className={`relative w-full text-left flex items-center gap-3 p-2 rounded-lg transition-colors border-2 ${
                   selectedChat === chat.id
-                    ? "bg-blue-50 border-blue-500" // Full blue border for selected state
-                    : "border-transparent hover:bg-gray-50" // Transparent border for non-selected
+                    ? "bg-blue-50 border-blue-500"
+                    : "border-transparent hover:bg-gray-50"
                 }`}
               >
-                <FaRegCommentDots className="text-gray-500 flex-shrink-0" />
+                <button
+                  onClick={() => handleChatClick(chat.id)}
+                  className="flex-1 flex items-center gap-3"
+                >
+                  <FaRegCommentDots className="text-gray-500 flex-shrink-0" />
 
-                <div className="min-w-0">
-                  <div className="text-sm font-medium text-gray-900 truncate">
-                    {chat.chatName}
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-gray-900 truncate">
+                      {chat.chatName}
+                    </div>
+                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                      <FaRegClock className="inline" />
+                      <span>1/18/2025</span>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500 flex items-center gap-1">
-                    <FaRegClock className="inline" />
-                    <span>1/18/2025</span>
+                </button>
+
+                {/* 3-dot menu container */}
+                <div className="relative flex items-center">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(chat.id);
+                    }}
+                    className="p-1 rounded-full hover:bg-gray-200 opacity-60 hover:opacity-100 transition-opacity"
+                  >
+                    {/* 3-dot icon */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-gray-500"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                    </svg>
+                  </button>
+
+                  {/* Dropdown menu */}
+                  <div
+                    className={`absolute right-0 top-6 z-20 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 ${
+                      openMenuId === chat.id ? "block" : "hidden"
+                    }`}
+                    data-chat-id={chat.id}
+                  >
+                    <div className="py-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRenameChat(chat.id);
+                        }}
+                        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <PencilIcon className="h-4 w-4 mr-2" />
+                        Rename
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteChat(chat.id);
+                        }}
+                        className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      >
+                        <TrashIcon className="h-4 w-4 mr-2 text-red-600" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </button>
+              </div>
             ))}
           </nav>
         )}
@@ -127,17 +226,17 @@ const SideBar = () => {
       <div className=" p-4  border-gray-200">
         <div className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
           <img
-            src="https://via.placeholder.com/40"
             alt="User"
+            src={profile?.pfp_url}
             className="w-8 h-8 rounded-full"
           />
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-gray-900 truncate">
-                John Doe
+                {profile?.name}
               </div>
               <div className="text-xs text-gray-500 truncate">
-                john@example.com
+                {profile?.email}
               </div>
             </div>
           )}
