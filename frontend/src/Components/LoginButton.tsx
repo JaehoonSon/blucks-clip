@@ -5,6 +5,8 @@ import {
 } from "@react-oauth/google";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Contexts/AuthContexts";
 
 export interface User {
   id: string;
@@ -19,6 +21,9 @@ export interface ApiResponse {
 }
 
 const LoginButton = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth(); // Get the login function from context
+
   const responseMessage = (response: CredentialResponse) => {
     if (!response.credential) return;
 
@@ -27,9 +32,9 @@ const LoginButton = () => {
         credential: response.credential,
       })
       .then((res) => {
-        const userData: User = res.data.user;
-        localStorage.setItem("user", JSON.stringify(userData));
-        localStorage.setItem("accessToken", res.data.token);
+        login(res.data.user, res.data.token);
+
+        navigate("/");
       })
       .catch((error) => {
         console.error("Login failed:", error);

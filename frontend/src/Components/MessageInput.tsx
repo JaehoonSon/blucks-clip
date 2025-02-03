@@ -9,7 +9,8 @@ import {
 import { Message } from "../Pages/MainChat";
 import { useState } from "react";
 import { API_BASE_URL, API_BUCKET_URL } from "../config";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import api from "../Services/axios";
 
 type MessageProps = {
   textInput: string;
@@ -33,6 +34,7 @@ const MessageInput = ({
   const { chat_id } = useParams<{ chat_id: string }>();
   const [error, setError] = useState<string>("");
   const [isPromptProcessing, setPromptProcessing] = useState<boolean>(false);
+  const navigate = useNavigate();
   const getSelectedVideos = (): UploadVideoResponse[] => {
     return uploadedVideos.filter((video) => video.selected);
   };
@@ -50,6 +52,20 @@ const MessageInput = ({
       return;
     }
     setPromptProcessing(true);
+
+    // For new chats, create the chat first
+
+    console.log("chat_id", chat_id);
+    let currentChatId = chat_id;
+    if (chat_id === "new") {
+      const createChatResponse = await api.post("/create-chat", {
+        message: textInput,
+        chatName: textInput.slice(0, 30) + (textInput.length > 30 ? "..." : ""),
+      });
+      currentChatId = createChatResponse.data.chat_id;
+      // Need to find a way to make that seamless flow
+      navigate(`/chat/${currentChatId}`);
+    }
 
     // Prepare user message
     const userMessageId =

@@ -2,6 +2,9 @@ version: "3.8"
 
 services:
   backend:
+    network_mode: host
+    networks:
+      - shared-network
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
@@ -14,6 +17,9 @@ services:
     command: flask --app ./app/api run --port=5001
 
   frontend:
+    network_mode: host
+    networks:
+      - shared-network
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
@@ -27,3 +33,7 @@ services:
     command: npm run dev
     depends_on:
       - backend
+
+networks:
+  shared-network:
+    driver: bridge

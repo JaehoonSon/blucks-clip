@@ -12,6 +12,7 @@ import MessageInput from "../Components/MessageInput";
 import ChatMessages from "../Components/ChatMessages";
 import { API_BASE_URL } from "../config";
 import { useParams } from "react-router-dom";
+import SideBar from "../Components/SideBar";
 
 interface Clip {
   id: number;
@@ -97,6 +98,7 @@ function MainChat() {
     //   Clips: [],
     // },
   ]);
+  const isNewChat = chat_id === "new";
 
   const suggestedPrompts: SuggestedPrompt[] = [
     { id: "1", text: "Give me 1 best moment from the clip" },
@@ -106,6 +108,8 @@ function MainChat() {
   ];
 
   useEffect(() => {
+    if (isNewChat) return;
+
     const fetchVideos = async () => {
       console.log("running");
       if (!chat_id) return;
@@ -113,16 +117,18 @@ function MainChat() {
       setUploadedVideos(videoData);
     };
     fetchVideos();
-  }, [chat_id]);
+  }, [chat_id, isNewChat]);
 
   useEffect(() => {
+    if (isNewChat) return;
+
     const getMessages = async () => {
       if (!chat_id) return;
       const history: Message[] = await GetMessagesAPI(chat_id);
       setHistory(history);
     };
     getMessages();
-  }, []);
+  }, [chat_id, isNewChat]);
 
   const handlePromptClick = (prompt: string) => {
     setTextInput(prompt);
@@ -131,8 +137,9 @@ function MainChat() {
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
       <div className="mx-auto h-screen flex flex-col lg:flex-row">
+        <SideBar />
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-gray-50 shadow-2xl overflow-hidden">
+        <div className="flex-1 flex flex-col bg-gray-50  overflow-hidden">
           <div className="flex-1 overflow-y-auto h-screen">
             <ChatMessages history={history} />
           </div>

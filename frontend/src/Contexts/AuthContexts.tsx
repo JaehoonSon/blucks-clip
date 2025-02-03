@@ -1,4 +1,13 @@
-import { createContext, ReactNode, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import api from "../Services/axios";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   id: string;
@@ -28,30 +37,60 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
 
-  // Initialize auth state from localStorage
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("accessToken");
-
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+  const logout = useCallback(async () => {
+    try {
+      await api.post("/api/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
     }
+    localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    delete api.defaults.headers.common["Authorization"];
+    setUser(null);
 
-    setLoading(false);
+    // Redirect to login page
+    navigate("/login");
   }, []);
 
-  // useless atm
+  const validateSession = useCallback(async () => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        // Add actual validation check
+        await api.get("/api/validate");
+      }
+    } catch (error) {
+      logout();
+    }
+  }, [logout]);
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        const storedToken = localStorage.getItem("accessToken");
+
+        if (storedUser && storedToken) {
+          // Add validation check here
+          await validateSession();
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        logout();
+      } finally {
+        setLoading(false); // ← Ensure loading always stops
+      }
+    };
+    initializeAuth();
+  }, [validateSession]);
+
   const login = (userData: User, token: string) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("accessToken", token);
-    // Optionally, set token in Axios headers if not handled by interceptors
-  };
-
-  const logout = async () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("accessToken");
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   };
 
   return (
@@ -59,4 +98,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+
+  return context;
 };

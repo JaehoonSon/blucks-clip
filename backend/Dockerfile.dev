@@ -15,6 +15,9 @@ COPY ./app ./app
 
 EXPOSE 5001
 
+# Ensure real-time logging
+ENV PYTHONUNBUFFERED=1
+
 # Set the correct FLASK_APP environment variable
 ENV FLASK_APP=app.api
 ENV FLASK_RUN_HOST=0.0.0.0

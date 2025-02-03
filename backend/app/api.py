@@ -15,10 +15,12 @@ from datetime import timedelta
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET")  # Ensure this is set and kept secret
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)  # Token valid for 1 hour
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)  # Original expiration
 jwt = JWTManager(app)
 app.secret_key = os.urandom(24)
 
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+
 # GET /test
 app.register_blueprint(test_bp)
 
