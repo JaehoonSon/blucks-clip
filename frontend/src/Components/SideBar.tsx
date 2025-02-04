@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import api from "../Services/axios";
 import {
+  ChangeChatNameAPI,
   CreateChatAPI,
   DeleteChatAPI,
   GetProfileAPI,
@@ -31,6 +32,9 @@ const SideBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const chatId = useParams<{ chat_id: string }>().chat_id;
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editedChatName, setEditedChatName] = useState("");
+
   const { logout } = useAuth();
 
   const [profile, setProfile] = useState<Profile>();
@@ -85,13 +89,20 @@ const SideBar = () => {
     navigate(`/chat/${chatId}`);
   };
 
-  const handleRenameChat = (chat_id: string) => {};
-
   const handleDeleteChat = async (chat_id: string) => {
     const res = await DeleteChatAPI(chat_id);
 
     if (res) {
       setChats((prevChats) => prevChats.filter((chat) => chat.id !== chat_id));
+    }
+  };
+
+  const handleRenameChat = (chatId: string) => {
+    setOpenMenuId("");
+    setEditingChatId(chatId);
+    const chat = chats.find((c) => c.id === chatId);
+    if (chat) {
+      setEditedChatName(chat.chatName);
     }
   };
 
@@ -156,7 +167,40 @@ const SideBar = () => {
 
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-gray-900 truncate">
-                      {chat.chatName}
+                      {editingChatId === chat.id ? (
+                        <input
+                          type="text"
+                          value={editedChatName}
+                          onChange={(e) => setEditedChatName(e.target.value)}
+                          onKeyDown={async (e) => {
+                            if (e.key === "Enter") {
+                              const success = await ChangeChatNameAPI(
+                                chat.id,
+                                editedChatName
+                              );
+                              if (success) {
+                                setChats((prevChats) =>
+                                  prevChats.map((c) =>
+                                    c.id === chat.id
+                                      ? { ...c, chatName: editedChatName }
+                                      : c
+                                  )
+                                );
+                                setEditingChatId(null);
+                                setEditedChatName("");
+                              }
+                            } else if (e.key === "Escape") {
+                              setEditingChatId(null);
+                              setEditedChatName("");
+                            }
+                          }}
+                          className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          autoFocus
+                          data-chat-id={chat.id}
+                        />
+                      ) : (
+                        chat.chatName
+                      )}
                     </div>
                     <div className="text-xs text-gray-500 flex items-center gap-1">
                       <FaRegClock className="inline" />

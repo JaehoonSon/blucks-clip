@@ -15,7 +15,7 @@ import { useParams } from "react-router-dom";
 import SideBar from "../Components/SideBar";
 
 interface Clip {
-  id: number;
+  id: string;
   filename: string;
   collapsed: boolean;
   commentary: string;

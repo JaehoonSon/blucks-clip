@@ -170,3 +170,35 @@ def db_delete_chat(user_id, chat_id):
         return True
     except Exception as e:
         return False
+    
+def db_update_chat_name(user_id, chat_id, new_name):
+    try:
+        chat_ref = db.collection('User').document(user_id).collection('Chats').document(chat_id)
+        chat_ref.update({
+            'chatName': new_name
+        })
+        return True
+    except Exception as e:
+        return False
+    
+def db_delete_video_from_chat(user_id, chat_id, video_id):
+    chat_ref = db.collection('User').document(user_id).collection('Chats').document(chat_id)
+    
+    # Retrieve the current list of uploaded videos
+    chat_doc = chat_ref.get()
+    if chat_doc.exists:
+        uploaded_videos = chat_doc.to_dict().get('uploadedVideos', [])
+        
+        # Find the video with the matching video_id
+        video_to_delete = next((video for video in uploaded_videos if video.get('id') == video_id), None)
+        
+        if video_to_delete:
+            # Remove the matched video
+            chat_ref.update({
+                'uploadedVideos': firestore.ArrayRemove([video_to_delete])
+            })
+            return True
+        else:
+            return False
+    else:
+        return True

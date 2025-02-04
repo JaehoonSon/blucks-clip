@@ -60,7 +60,11 @@ def check_file_blob_exists_gcs(bucket_name, blob_name):
     return blob.exists()
 
 def delete_to_gemini(name):
-    genai.delete_file(name=name)
+    try:
+        genai.delete_file(name=name)
+        return True
+    except Exception as e:
+        return False
 
 def delete_to_gcs(bucket_name, blob_name):
     bucket = storage_client.bucket(bucket_name)

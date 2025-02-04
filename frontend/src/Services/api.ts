@@ -137,6 +137,7 @@ export async function sendPrompt(
 
 export interface DeleteVideoRequest {
   file_id: string;
+  chat_id: string;
 }
 
 export interface DeleteVideoResponse {
@@ -150,6 +151,7 @@ export async function DeleteVideoAPI(
   const response = await fetch(`${API_BASE_URL}/delete-video`, {
     method: "POST",
     headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(request),
@@ -327,4 +329,27 @@ export async function DeleteChatAPI(chat_id: string): Promise<boolean> {
   if (response.ok) return true;
 
   return false;
+}
+
+export async function ChangeChatNameAPI(
+  chat_id: string,
+  editedChatName: string
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/rename-chat`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        chat_id: chat_id,
+        editedChatName: editedChatName,
+      }),
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
 }

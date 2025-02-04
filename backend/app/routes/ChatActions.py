@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from utilities.database_action import db_get_video_in_chat, db_get_chats, db_delete_chat, db_get_messages, db_get_profile
+from utilities.database_action import db_get_video_in_chat, db_get_chats, db_delete_chat, db_get_messages, db_get_profile, db_update_chat_name
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import io
 
@@ -67,3 +67,17 @@ def DeleteChat():
     res = db_delete_chat(user_id=user_id, chat_id=chat_id)
 
     return jsonify({}), 200 
+
+@ChatActions_bp.route('/rename-chat', methods=["POST"])
+@jwt_required()
+def RenameChat():
+    user_id = get_jwt_identity()
+    data = request.json
+    chat_id = data.get("chat_id")
+    editedChatName = data.get("editedChatName")
+    res = db_update_chat_name(user_id, chat_id, editedChatName)
+    if res:
+        return jsonify({}), 200
+    else:
+        return jsonify({}), 500
+    

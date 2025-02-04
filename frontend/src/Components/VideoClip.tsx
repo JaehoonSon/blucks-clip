@@ -1,17 +1,40 @@
 import React, { useState } from "react";
 import { ChevronDown, X } from "lucide-react";
 import ImageLoader from "./UI/ImageLoader";
+import { API_BASE_URL } from "../config";
 
 interface VideoClipProps {
-  videoUrl: string;
+  file_id: string;
   commentary?: string;
-  filename?: string;
+  filename: string;
   thumbnailUrl?: string;
   timeStamp: {
     start: string;
     end: string;
   };
   initiallyCollapsed?: boolean;
+}
+
+function getMimeType(filename: string): string {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  const mimeTypes: { [key: string]: string } = {
+    mp4: "video/mp4",
+    mp3: "audio/mp3",
+    jpeg: "image/jpeg",
+    jpg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    pdf: "application/pdf",
+    txt: "text/plain",
+    html: "text/html",
+    css: "text/css",
+    js: "application/javascript",
+    json: "application/json",
+    zip: "application/zip",
+    // add more types as needed
+  };
+
+  return (ext && mimeTypes[ext]) || "application/octet-stream";
 }
 
 const parseTime = (timeStr: string): number => {
@@ -26,13 +49,15 @@ const formatDuration = (seconds: number): string => {
 };
 
 const VideoClip: React.FC<VideoClipProps> = ({
-  videoUrl,
+  file_id,
   commentary,
   filename,
   thumbnailUrl,
   timeStamp,
   initiallyCollapsed = true,
 }) => {
+  if (typeof filename !== "string") return <></>;
+
   const [isCollapsed, setIsCollapsed] = useState(initiallyCollapsed);
 
   const startSeconds = parseTime(timeStamp.start);
@@ -83,7 +108,9 @@ const VideoClip: React.FC<VideoClipProps> = ({
             <video
               controls
               className="w-full rounded-lg aspect-video bg-gray-50"
-              src={`${videoUrl}&start=${timeStamp.start}&end=${timeStamp.end}`}
+              src={`${API_BASE_URL}/get-video?start=${timeStamp.start}&end=${
+                timeStamp.end
+              }&mimetype=${getMimeType(filename)}&file_id=${file_id}`}
             />
           </div>
         )}

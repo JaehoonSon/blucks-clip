@@ -2,6 +2,7 @@ import { UploadVideoResponse } from "../Services/api";
 import { X, Check, Video, Delete, Loader2 } from "lucide-react";
 import { DeleteVideoAPI } from "../Services/api";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 
 type VideoProps = {
   uploadedVideo: UploadVideoResponse;
@@ -12,6 +13,7 @@ type VideoProps = {
 
 const UploadedVideos = ({ uploadedVideo, setUploadedVideos }: VideoProps) => {
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+  const chatId = useParams<{ chat_id: string }>().chat_id;
 
   const handleVideoSelect = (fileId: string) => {
     setUploadedVideos((prevVideos) =>
@@ -30,7 +32,8 @@ const UploadedVideos = ({ uploadedVideo, setUploadedVideos }: VideoProps) => {
     e.stopPropagation();
     setDeleteLoading(true);
     try {
-      await DeleteVideoAPI({ file_id: video.file_id });
+      if (typeof chatId !== "string") return;
+      await DeleteVideoAPI({ file_id: video.file_id, chat_id: chatId });
       setUploadedVideos((prevVideos) =>
         prevVideos.filter((v) => v.file_id !== video.file_id)
       );

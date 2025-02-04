@@ -58,7 +58,7 @@ const ChatMessages = ({ history }: MessageProps) => {
     <>
       {/* Chat Messages */}
       <div
-        className={`flex-grow mt-4 overflow-y-auto mx-40 flex flex-col ${
+        className={`flex-grow mt-4 overflow-y-auto mx-20 flex flex-col ${
           history.length === 0 ? "justify-center items-center h-full" : ""
         }`}
       >
@@ -96,7 +96,7 @@ const ChatMessages = ({ history }: MessageProps) => {
                     ) : (
                       <div>
                         <div className={messageClasses}>
-                          <p className="text-sm text-gray-800 mb-2">
+                          <p className="text-base font-medium text-gray-800 mb-2">
                             {message.mainMessage}
                           </p>
                         </div>
@@ -104,7 +104,7 @@ const ChatMessages = ({ history }: MessageProps) => {
                         {(message.Clips || []).map((clip) => (
                           <VideoClip
                             key={clip.id}
-                            videoUrl={clip.videoUrl}
+                            file_id={clip.id}
                             commentary={clip.commentary}
                             filename={clip.filename}
                             timeStamp={clip.timeStamp}
