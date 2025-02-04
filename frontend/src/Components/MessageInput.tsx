@@ -7,7 +7,7 @@ import {
 } from "../Services/api";
 // import { Message } from "../App";
 import { Message } from "../Pages/MainChat";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { API_BASE_URL, API_BUCKET_URL } from "../config";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../Services/axios";
@@ -21,7 +21,6 @@ export function generateString(length: number) {
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
-
   return result;
 }
 
@@ -34,6 +33,8 @@ type MessageProps = {
   >;
   history: Message[];
   setHistory: React.Dispatch<React.SetStateAction<Message[]>>;
+  pendingPrompt?: string;
+  clearPendingPrompt?: () => void;
 };
 
 const MessageInput = ({
@@ -43,6 +44,8 @@ const MessageInput = ({
   setUploadedVideos,
   history,
   setHistory,
+  pendingPrompt,
+  clearPendingPrompt,
 }: MessageProps) => {
   const { chat_id } = useParams<{ chat_id: string }>();
   const [error, setError] = useState<string>("");
@@ -52,16 +55,13 @@ const MessageInput = ({
   };
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (textInput.trim().length < 3) {
+  const processMessage = async (message: string) => {
+    if (message.trim().length < 3) {
       setError("Input must be at least 3 characters long.");
-
       // Remove error message after 1 second
       setTimeout(() => {
         setError("");
       }, 1000);
-
       return;
     }
     setPromptProcessing(true);
@@ -72,15 +72,14 @@ const MessageInput = ({
     if (chat_id === "new") {
       try {
         const createChatResponse = await api.post("/create-chat", {
-          message: textInput,
-          chatName:
-            textInput.slice(0, 30) + (textInput.length > 30 ? "..." : ""),
+          message: message,
+          chatName: message.slice(0, 30) + (message.length > 30 ? "..." : ""),
         });
         currentChatId = createChatResponse.data.chat_id;
         navigate(`/chat/${currentChatId}`, {
-          replace: true,
-          state: { pendingPrompt: textInput },
+          state: { pendingPrompt: message },
         });
+        return;
       } catch (error) {
         console.error("Failed to create chat:", error);
         setPromptProcessing(false);
@@ -89,13 +88,11 @@ const MessageInput = ({
     }
 
     // Prepare user message
-    // const userMessageId =
-    //   history.reduce((max, msg) => Math.max(max, msg.id), 0) + 1;
     const userMessage: Message = {
       id: generateString(4),
-      mainMessage: textInput,
+      mainMessage: message,
       role: "user",
-      message: textInput,
+      message: message,
       timeStamp: new Date().toLocaleTimeString(),
     };
     setHistory((prevHistory) => [...prevHistory, userMessage]);
@@ -112,26 +109,27 @@ const MessageInput = ({
     setHistory((prevHistory) => [...prevHistory, assistantMessage]);
 
     const selectedVideos = getSelectedVideos();
-    setTextInput("");
+    setTextInput(""); // clear the input
 
-    if (selectedVideos.length == 0 && chat_id != null) {
+    // Process non-video (text-only) prompt if no videos are selected
+    if (selectedVideos.length === 0 && currentChatId != null) {
       const body: SendPromptRequest = {
-        prompt: textInput,
-        chat_id: chat_id,
+        prompt: message,
+        chat_id: currentChatId,
         file_ids: [],
       };
       const res: SendPromptResponse = await sendPrompt(body);
       assistantMessage.mainMessage = res.message;
     }
 
+    // Process prompt for each selected video
     const videoPromises = selectedVideos.map((video) => {
       return new Promise<void>(async (resolve, reject) => {
         try {
-          // Send prompt for each video
-          if (chat_id == null) return;
+          if (currentChatId == null) return;
           const body: SendPromptRequest = {
-            prompt: textInput,
-            chat_id: chat_id,
+            prompt: message,
+            chat_id: currentChatId,
             file_ids: [video],
           };
           const res: SendPromptResponse = await sendPrompt(body);
@@ -171,7 +169,7 @@ const MessageInput = ({
       });
     });
 
-    // Wait for all videoPromises to complete
+    // Wait for all video-related promises to complete
     await Promise.all(videoPromises);
 
     // Remove typing indicator from assistant message
@@ -187,6 +185,28 @@ const MessageInput = ({
 
     setPromptProcessing(false);
   };
+
+  // Normal form submission handler (triggered when the user clicks send)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await processMessage(textInput);
+  };
+
+  /**
+   * Use an effect to detect when a pending prompt is passed in.
+   * If a non-empty pendingPrompt is present, trigger the send logic.
+   */
+  useEffect(() => {
+    if (pendingPrompt && pendingPrompt.trim() !== "") {
+      processMessage(pendingPrompt);
+      // Optionally clear the pending prompt so it is not re-processed
+      if (clearPendingPrompt) {
+        clearPendingPrompt();
+      }
+    }
+    // We intentionally want to run this effect only when pendingPrompt changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPrompt]);
   return (
     <>
       {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
