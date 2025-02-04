@@ -15,8 +15,8 @@ import api from "../Services/axios";
 const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-function generateString(length: number) {
-  let result = "";
+export function generateString(length: number) {
+  let result = " ";
   const charactersLength = characters.length;
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
@@ -139,12 +139,8 @@ const MessageInput = ({
 
           // Map response to new clips
           const newClips = res.response.map((e) => ({
-            id:
-              (assistantMessage.Clips?.reduce(
-                (max, clip) => Math.max(max, Number(clip.id)),
-                0
-              ) || 0) + 1,
-            videoUrl: `${API_BASE_URL}/get-video?file_id=${video.file_id}&mimetype=${video.mime_type}`,
+            id: generateString(5),
+            videoUrl: `${API_BASE_URL}/get-video?file_id=files/${video.file_id}&mimeType=${video.mime_type}&chat_id=${chat_id}`,
             commentary: e.commentary,
             collapsed: false,
             filename: video.file_name,
