@@ -137,6 +137,10 @@ const MainChat: React.FC = () => {
           {isNewChat ? (
             <div className="flex-1 flex flex-col items-center justify-center p-4">
               <div className="w-full max-w-4xl">
+                {/* Custom welcome message */}
+                <div className="mb-4 p-4 text-center text-3xl  rounded-lg">
+                  What can I help you with?
+                </div>
                 <InputSection
                   textInput={textInput}
                   setTextInput={setTextInput}

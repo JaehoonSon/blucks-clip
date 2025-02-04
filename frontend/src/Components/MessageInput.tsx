@@ -16,7 +16,7 @@ const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 function generateString(length: number) {
-  let result = " ";
+  let result = "";
   const charactersLength = characters.length;
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
@@ -50,10 +50,12 @@ const MessageInput = ({
   const { chat_id } = useParams<{ chat_id: string }>();
   const [error, setError] = useState<string>("");
   const [isPromptProcessing, setPromptProcessing] = useState<boolean>(false);
+  const navigate = useNavigate();
+
+  // Helper function to filter selected videos
   const getSelectedVideos = (): UploadVideoResponse[] => {
     return uploadedVideos.filter((video) => video.selected);
   };
-  const navigate = useNavigate();
 
   const processMessage = async (message: string) => {
     if (message.trim().length < 3) {
@@ -109,7 +111,7 @@ const MessageInput = ({
     setHistory((prevHistory) => [...prevHistory, assistantMessage]);
 
     const selectedVideos = getSelectedVideos();
-    setTextInput(""); // clear the input
+    setTextInput(""); // Clear the input
 
     // Process non-video (text-only) prompt if no videos are selected
     if (selectedVideos.length === 0 && currentChatId != null) {
@@ -190,14 +192,35 @@ const MessageInput = ({
     setPromptProcessing(false);
   };
 
-  // Normal form submission handler (triggered when the user clicks send)
+  // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await processMessage(textInput);
   };
 
+  // Handle key events for the textarea to support Shift+Enter
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // If Enter is pressed without Shift, prevent default newline and submit the message
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      processMessage(textInput);
+    }
+    // Otherwise (Shift+Enter) the default behavior inserts a newline
+  };
+
+  // Set a default minimum number of lines (e.g., 3)
+  const defaultLines = 3;
+  // Height per line in pixels; adjust this to match your design (e.g., 24px)
+  const lineHeight = 24;
+  const maxLines = 10; // maximum number of visible lines
+
+  // Calculate the number of lines in the text input, ensuring a minimum of defaultLines
+  const currentLineCount = Math.max(textInput.split("\n").length, defaultLines);
+  // Calculate the height: use the smaller of the current line count or the maximum lines
+  const calculatedHeight = Math.min(currentLineCount, maxLines) * lineHeight;
+
   /**
-   * Use an effect to detect when a pending prompt is passed in.
+   * Effect to detect when a pending prompt is passed in.
    * If a non-empty pendingPrompt is present, trigger the send logic.
    */
   useEffect(() => {
@@ -211,17 +234,22 @@ const MessageInput = ({
     // We intentionally want to run this effect only when pendingPrompt changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingPrompt]);
+
   return (
     <>
       {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
+      <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+        <textarea
           value={textInput}
           onChange={(e) => setTextInput(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Type a message or select a prompt..."
-          className="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          style={{
+            height: `${calculatedHeight}px`,
+            minHeight: `${defaultLines * lineHeight}px`,
+          }}
         />
         <button
           type="submit"

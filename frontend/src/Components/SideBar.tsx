@@ -93,8 +93,7 @@ const SideBar: React.FC<SideBarProps> = ({ mobileView = false }) => {
   };
 
   const handleNewChat = async () => {
-    const res = await CreateChatAPI();
-    navigate(`/chat/${res}`);
+    navigate(`/chat/new`);
   };
 
   const handleChatClick = (chatId: string) => {
