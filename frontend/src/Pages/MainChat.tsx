@@ -39,7 +39,7 @@ export interface Message {
 }
 
 function MainChat() {
-  const { chat_id } = useParams<{ chat_id: string }>(); // Get chat_id from URL params
+  const { chat_id } = useParams<{ chat_id: string }>();
   const [textInput, setTextInput] = useState<string>("");
   const [uploadedVideos, setUploadedVideos] = useState<UploadVideoResponse[]>([
     // {
