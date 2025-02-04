@@ -5,7 +5,7 @@ import VideoClip from "./VideoClip";
 import { useState, useEffect } from "react";
 import { GetProfileAPI, Profile } from "../Services/api";
 
-type MessageProps = {
+export type MessageProps = {
   history: Message[];
 };
 

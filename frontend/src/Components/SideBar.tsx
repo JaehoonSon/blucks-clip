@@ -219,7 +219,7 @@ const SideBar: React.FC<SideBarProps> = ({ mobileView = false }) => {
                     </div>
                     <div className="text-xs text-gray-500 flex items-center gap-1">
                       <FaRegClock className="inline" />
-                      <span>1/18/2025</span>
+                      <span>2/04/2025</span>
                     </div>
                   </div>
                 </button>

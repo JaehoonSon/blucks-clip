@@ -139,7 +139,7 @@ const MessageInput = ({
 
           // Map response to new clips
           const newClips = res.response.map((e) => ({
-            id: generateString(5),
+            id: `files/${video.file_id}`,
             videoUrl: `${API_BASE_URL}/get-video?file_id=files/${video.file_id}&mimeType=${video.mime_type}&chat_id=${chat_id}`,
             commentary: e.commentary,
             collapsed: false,

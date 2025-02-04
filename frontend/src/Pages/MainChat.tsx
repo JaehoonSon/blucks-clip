@@ -12,6 +12,7 @@ import ChatMessages from "../Components/ChatMessages";
 import { useParams, useLocation } from "react-router-dom";
 import SideBar from "../Components/SideBar";
 import InputSection, { SuggestedPrompt } from "../Components/InputSection"; // Adjust the import path as needed
+import GeneratedClips from "../Components/GeneratedClips";
 
 export interface Clip {
   id: string;
@@ -47,7 +48,7 @@ const MainChat: React.FC = () => {
   const suggestedPrompts: SuggestedPrompt[] = [
     { id: "1", text: "Give me 1 best moment from the clip" },
     { id: "2", text: "Show me all the home runs" },
-    { id: "3", text: "Key takeaway" },
+    { id: "3", text: "Show me the strikeouts" },
     { id: "4", text: "Action sequence" },
   ];
 
@@ -202,15 +203,7 @@ const MainChat: React.FC = () => {
                 ))}
               </div>
             </div>
-            <div className="mt-6 border-t pt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">
-                Generated Clips
-              </h3>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-sm text-gray-600">
-                <Plus className="w-4 h-4" />
-                <span>New Video Compilation</span>
-              </button>
-            </div>
+            <GeneratedClips history={history} />
           </div>
         </div>
       </div>
