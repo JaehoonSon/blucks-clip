@@ -26,7 +26,12 @@ export interface Chat {
   uploadedVideos: UploadVideoResponse[];
 }
 
-const SideBar = () => {
+interface SideBarProps {
+  mobileView?: boolean;
+}
+
+const SideBar: React.FC<SideBarProps> = ({ mobileView = false }) => {
+  // When in mobile view, ignore collapse functionality.
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]);
   const navigate = useNavigate();
@@ -34,10 +39,12 @@ const SideBar = () => {
   const chatId = useParams<{ chat_id: string }>().chat_id;
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editedChatName, setEditedChatName] = useState("");
-
   const { logout } = useAuth();
-
   const [profile, setProfile] = useState<Profile>();
+
+  // In mobile view, always show the full sidebar.
+  const containerWidth = mobileView ? "w-full" : isCollapsed ? "w-20" : "w-80";
+
   useEffect(() => {
     const GetProfile = async () => {
       const res = await GetProfileAPI();
@@ -60,13 +67,12 @@ const SideBar = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [openMenuId]);
 
-  // Fetch Data
+  // Fetch chats on location change.
   useEffect(() => {
     const fetchChats = async () => {
       try {
         const response = await api.get("/get-chats");
         const data = await response.data;
-
         console.log(data);
         setChats(data);
       } catch (err) {
@@ -78,12 +84,19 @@ const SideBar = () => {
   }, [location.pathname]);
 
   const [selectedChat, setSelectedChat] = useState<string>();
-  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
+
+  // Collapse toggle is not rendered when in mobile view.
+  const toggleCollapse = () => {
+    if (!mobileView) {
+      setIsCollapsed(!isCollapsed);
+    }
+  };
+
   const handleNewChat = async () => {
-    // Handle file upload logic here
     const res = await CreateChatAPI();
     navigate(`/chat/${res}`);
   };
+
   const handleChatClick = (chatId: string) => {
     setSelectedChat(chatId);
     navigate(`/chat/${chatId}`);
@@ -91,7 +104,6 @@ const SideBar = () => {
 
   const handleDeleteChat = async (chat_id: string) => {
     const res = await DeleteChatAPI(chat_id);
-
     if (res) {
       setChats((prevChats) => prevChats.filter((chat) => chat.id !== chat_id));
     }
@@ -108,46 +120,51 @@ const SideBar = () => {
 
   return (
     <div
-      className={`h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${
-        isCollapsed ? "w-20" : "w-80"
-      }`}
+      className={` h-full bg-white  border-gray-200 flex flex-col justify-between transition-all duration-300 ${containerWidth} overflow-hidden`}
     >
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 overflow-hidden">
-        {isCollapsed ? (
-          <div className="mb-4">
-            <div className="px-4 py-3 bg-gray-200 rounded-lg mb-4"></div>
-            <button
-              onClick={toggleCollapse}
-              className=" bg-white border border-gray-200 px-4 py-3 rounded-lg  z-10 hover:bg-gray-50"
-            >
-              {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
-            </button>
-          </div>
-        ) : (
-          <div className="flex justify-between items-center mb-10">
-            <h1 className="text-2xl font-bold">Blucks Clip</h1>
-            <button
-              onClick={toggleCollapse}
-              className=" bg-white border border-gray-200 px-4 py-3 rounded-lg  z-10 hover:bg-gray-50"
-            >
-              {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
-            </button>
-          </div>
-        )}
-
-        <button
-          onClick={handleNewChat}
-          className="w-full flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <FaPlus className="text-lg" />
-          {!isCollapsed && <span>New Chat</span>}
-        </button>
-      </div>
-
-      {/* Chat History */}
-      {/* Chat History */}
+      {/* Top Section: Header & Chat History */}
       <div className="flex-1 overflow-y-auto">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          {/* Render collapse toggle only when not in mobile view */}
+          {!mobileView && (
+            <>
+              {isCollapsed ? (
+                <div className="mb-4">
+                  <div className="px-4 py-3 bg-gray-200 rounded-lg mb-4"></div>
+                  <button
+                    onClick={toggleCollapse}
+                    className="bg-white border border-gray-200 px-4 py-3 rounded-lg hover:bg-gray-50"
+                  >
+                    <FaChevronRight />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center mb-10">
+                  <h1 className="text-2xl font-bold break-words">
+                    Blucks Clip
+                  </h1>
+                  <button
+                    onClick={toggleCollapse}
+                    className="bg-white border border-gray-200 px-4 py-3 rounded-lg hover:bg-gray-50"
+                  >
+                    <FaChevronLeft />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          <button
+            onClick={handleNewChat}
+            className="w-full flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <FaPlus className="text-lg" />
+            {!isCollapsed && <span>New Chat</span>}
+          </button>
+        </div>
+
+        {/* Chat History */}
         {!isCollapsed && (
           <nav className="space-y-1 p-2">
             {chats.map((chat) => (
@@ -164,9 +181,8 @@ const SideBar = () => {
                   className="flex-1 flex items-center gap-3"
                 >
                   <FaRegCommentDots className="text-gray-500 flex-shrink-0" />
-
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-gray-900 truncate">
+                    <div className="text-sm font-medium text-gray-900 truncate break-words">
                       {editingChatId === chat.id ? (
                         <input
                           type="text"
@@ -218,7 +234,6 @@ const SideBar = () => {
                     }}
                     className="p-1 rounded-full hover:bg-gray-200 opacity-60 hover:opacity-100 transition-opacity"
                   >
-                    {/* 3-dot icon */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5 text-gray-500"
@@ -266,29 +281,25 @@ const SideBar = () => {
         )}
       </div>
 
-      {/* User Profile */}
-      <div className=" p-4  border-gray-200">
+      {/* Bottom Section: User Profile */}
+      <div className={`p-4  ${mobileView ? "mb-8" : ""}`}>
         <div className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
           <img
             alt="User"
             src={profile?.pfp_url}
             className="w-8 h-8 rounded-full"
           />
-          {!isCollapsed && (
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-gray-900 truncate">
-                {profile?.name}
-              </div>
-              <div className="text-xs text-gray-500 truncate">
-                {profile?.email}
-              </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-gray-900 truncate break-words">
+              {profile?.name}
             </div>
-          )}
-          {!isCollapsed && (
-            <button onClick={logout}>
-              <FaSignOutAlt className="text-gray-500 hover:text-red-600 transition-colors" />
-            </button>
-          )}
+            <div className="text-xs text-gray-500 truncate break-words">
+              {profile?.email}
+            </div>
+          </div>
+          <button onClick={logout}>
+            <FaSignOutAlt className="text-gray-500 hover:text-red-600 transition-colors" />
+          </button>
         </div>
       </div>
     </div>

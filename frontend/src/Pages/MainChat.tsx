@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus, Menu, X } from "lucide-react"; // Import icons for the mobile menu toggle
 import UploadVideos from "../Components/UploadVideos";
 import {
   GetMessagesAPI,
@@ -8,24 +8,18 @@ import {
   UploadVideoResponse,
 } from "../Services/api";
 import UploadedVideos from "../Components/UploadedVideos";
-import MessageInput from "../Components/MessageInput";
 import ChatMessages from "../Components/ChatMessages";
-import { API_BASE_URL } from "../config";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import SideBar from "../Components/SideBar";
+import InputSection, { SuggestedPrompt } from "../Components/InputSection"; // Adjust the import path as needed
 
-interface Clip {
+export interface Clip {
   id: string;
   filename: string;
   collapsed: boolean;
   commentary: string;
   videoUrl: string;
   timeStamp: TimeStamp;
-}
-
-interface SuggestedPrompt {
-  id: string;
-  text: string;
 }
 
 export interface Message {
@@ -38,66 +32,16 @@ export interface Message {
   typing?: boolean;
 }
 
-function MainChat() {
+const MainChat: React.FC = () => {
   const { chat_id } = useParams<{ chat_id: string }>(); // Get chat_id from URL params
+  const location = useLocation(); // Add this line
+  const [pendingPrompt, setPendingPrompt] = useState<string>(""); // Add state for pending prompt
   const [textInput, setTextInput] = useState<string>("");
-  const [uploadedVideos, setUploadedVideos] = useState<UploadVideoResponse[]>([
-    // {
-    //   file_id: "files/hegg7ank9bph",
-    //   file_name: "videoplayback (1).mp4",
-    //   file_uri:
-    //     "https://generativelanguage.googleapis.com/v1beta/files/hegg7ank9bph",
-    //   message: "File uploaded successfully",
-    //   mime_type: "video/mp4",
-    //   selected: true,
-    // },
-    // {
-    //   file_id: "files/2h7whorqqy6t",
-    //   file_name: "videoplayback (2).mp4",
-    //   file_uri:
-    //     "https://generativelanguage.googleapis.com/v1beta/files/2h7whorqqy6t",
-    //   message: "File uploaded successfully",
-    //   mime_type: "video/mp4",
-    //   selected: true,
-    // },
-    // {
-    //   file_id: "files/tmzfv9m98ls9",
-    //   file_name: "White Basketball (2).mp4",
-    //   file_uri:
-    //     "https://generativelanguage.googleapis.com/v1beta/files/tmzfv9m98ls9",
-    //   message: "File uploaded successfully",
-    //   mime_type: "video/mp4",
-    //   selected: true,
-    // },
-  ]);
-  const [history, setHistory] = useState<Message[]>([
-    // {
-    //   id: "1",
-    //   role: "assistant",
-    //   timeStamp: "10:00 AM",
-    //   mainMessage: "Video of something",
-    //   Clips: [
-    //     {
-    //       id: 1,
-    //       commentary: "HOME RUN!",
-    //       filename: "baseball",
-    //       collapsed: true,
-    //       videoUrl: `${API_BASE_URL}/get-video?file_id=files/669lpd8zkw2t&mimetype=video/mp4`,
-    //       timeStamp: {
-    //         start: "00:00:01",
-    //         end: "00:00:03",
-    //       },
-    //     },
-    //   ],
-    // },
-    // {
-    //   id: "2",
-    //   role: "user",
-    //   timeStamp: "10:00 AM",
-    //   mainMessage: "Video of something",
-    //   Clips: [],
-    // },
-  ]);
+  const [uploadedVideos, setUploadedVideos] = useState<UploadVideoResponse[]>(
+    []
+  );
+  const [history, setHistory] = useState<Message[]>([]);
+  const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
   const isNewChat = chat_id === "new";
 
   const suggestedPrompts: SuggestedPrompt[] = [
@@ -109,26 +53,40 @@ function MainChat() {
 
   useEffect(() => {
     if (isNewChat) return;
-
     const fetchVideos = async () => {
-      console.log("running");
       if (!chat_id) return;
-      const videoData = await RetrieveVideoAPI({ chat_id: chat_id });
+      const videoData = await RetrieveVideoAPI({ chat_id });
       setUploadedVideos(videoData);
     };
     fetchVideos();
   }, [chat_id, isNewChat]);
 
   useEffect(() => {
-    if (isNewChat) return;
-
+    // Don't re‑fetch if there's a pending prompt to be processed
+    if (isNewChat || pendingPrompt) return;
     const getMessages = async () => {
       if (!chat_id) return;
-      const history: Message[] = await GetMessagesAPI(chat_id);
-      setHistory(history);
+      const messages: Message[] = await GetMessagesAPI(chat_id);
+      setHistory(messages);
     };
-    getMessages();
-  }, [chat_id, isNewChat]);
+    // Optionally, delay the fetch a bit
+    const timer = setTimeout(getMessages, 1000);
+    return () => clearTimeout(timer);
+  }, [chat_id, isNewChat, pendingPrompt]);
+
+  useEffect(() => {
+    if (chat_id && chat_id !== "new") {
+      // Check for pending prompt in navigation state
+      const receivedPrompt = location.state?.pendingPrompt;
+      if (receivedPrompt) {
+        // Clear navigation state to prevent re-use
+        window.history.replaceState({}, document.title);
+        setPendingPrompt(receivedPrompt);
+
+        console.log("Received prompt:", receivedPrompt);
+      }
+    }
+  }, [chat_id, location.state]);
 
   const handlePromptClick = (prompt: string) => {
     setTextInput(prompt);
@@ -136,99 +94,96 @@ function MainChat() {
 
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
-      <div className="mx-auto h-screen flex flex-col lg:flex-row">
-        <SideBar />
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-gray-50  overflow-hidden">
-          <div className="flex-1 overflow-y-auto h-screen">
-            <ChatMessages history={history} />
-          </div>
+      <div className="flex flex-col lg:flex-row h-screen">
+        {/* Mobile Top Bar with Menu Button */}
+        <div className="lg:hidden bg-gray-50 flex items-center p-4">
+          <button
+            className="text-gray-700"
+            onClick={() => setShowMobileSidebar(true)}
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <h1 className="ml-4 text-lg font-semibold text-gray-800">
+            Main Chat
+          </h1>
+        </div>
 
-          {/* Input Area */}
-          <div className="border-t bg-white">
-            {/* Selected Videos Context */}
-            {uploadedVideos.some((v) => v.selected) && (
-              <div className="px-4 pt-3 pb-2 bg-blue-50/50 select-none">
-                <div className="max-w-4xl mx-auto">
-                  <p className="text-xs text-blue-600 font-medium mb-1">
-                    SELECTED CONTEXT:
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    {uploadedVideos
-                      .filter((v) => v.selected)
-                      .map((video) => (
-                        <span
-                          key={video.file_id}
-                          className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium cursor-pointer transition-all hover:bg-blue-200 active:bg-blue-300 shadow-xs"
-                          onClick={() =>
-                            setUploadedVideos((prevVideos) =>
-                              prevVideos.map((v) =>
-                                v.file_id === video.file_id
-                                  ? { ...v, selected: false }
-                                  : v
-                              )
-                            )
-                          }
-                        >
-                          {video.file_name}
-                        </span>
-                      ))}
-                  </div>
-                </div>
+        {/* Sidebar for Large Screens */}
+        <div className="hidden lg:block">
+          <SideBar />
+        </div>
+
+        {/* Mobile Sidebar Overlay */}
+        {showMobileSidebar && (
+          <div className="fixed inset-0 z-50 flex">
+            <div className="w-64 bg-white shadow-xl p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Menu</h2>
+                <button onClick={() => setShowMobileSidebar(false)}>
+                  <X className="w-6 h-6" />
+                </button>
               </div>
-            )}
+              <SideBar mobileView={true} />
+            </div>
+            <div
+              className="flex-1 bg-black opacity-50"
+              onClick={() => setShowMobileSidebar(false)}
+            />
+          </div>
+        )}
 
-            {/* Suggested Prompts */}
-            <div className="border-t pt-3 px-4 bg-white">
-              <div className="max-w-4xl mx-auto">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center gap-2 text-slate-800 shrink-0 select-none">
-                    <Sparkles className="h-5 w-5 text-purple-500" />
-                    <span className="text-sm font-semibold">
-                      AI SUGGESTIONS
-                    </span>
-                  </div>
-                  <div className="flex-1 overflow-x-auto pb-2">
-                    <div className="flex gap-2">
-                      {suggestedPrompts.map((prompt) => (
-                        <button
-                          key={prompt.id}
-                          onClick={() => handlePromptClick(prompt.text)}
-                          className="px-3 py-1.5 bg-blue-50/50 text-blue-600 rounded-full text-xs whitespace-nowrap hover:bg-blue-100/50 transition-colors shadow-sm"
-                        >
-                          {prompt.text}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Message Input */}
-                <div className="pb-3">
-                  <MessageInput
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+          {isNewChat ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-4">
+              <div className="w-full max-w-4xl">
+                <InputSection
+                  textInput={textInput}
+                  setTextInput={setTextInput}
+                  uploadedVideos={uploadedVideos}
+                  setUploadedVideos={setUploadedVideos}
+                  history={history}
+                  setHistory={setHistory}
+                  suggestedPrompts={suggestedPrompts}
+                  handlePromptClick={handlePromptClick}
+                  pendingPrompt={pendingPrompt}
+                  clearPendingPrompt={() => setPendingPrompt("")}
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex-1 overflow-y-auto p-4">
+                <ChatMessages history={history} />
+              </div>
+              <div className="flex items-center justify-center p-4">
+                <div className="w-full max-w-4xl">
+                  <InputSection
                     textInput={textInput}
                     setTextInput={setTextInput}
                     uploadedVideos={uploadedVideos}
                     setUploadedVideos={setUploadedVideos}
                     history={history}
                     setHistory={setHistory}
+                    suggestedPrompts={suggestedPrompts}
+                    handlePromptClick={handlePromptClick}
+                    pendingPrompt={pendingPrompt}
+                    clearPendingPrompt={() => setPendingPrompt("")}
                   />
                 </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
-        {/* Right Sidebar */}
-        <div className="w-full lg:w-96 xl:w-80 bg-white shadow-2xl overflow-y-auto">
+        {/* Right Upload Panel (Only on Large Screens) */}
+        <div className="hidden lg:block lg:w-96 xl:w-80 bg-white shadow-2xl overflow-y-auto">
           <div className="p-4">
             <h2 className="font-semibold text-lg mb-4">Video Library</h2>
-
             <UploadVideos
               uploadedVideos={uploadedVideos}
               setUploadedVideos={setUploadedVideos}
             />
-
             <div className="mt-6">
               <h3 className="text-sm font-medium text-gray-700 mb-3">
                 Uploaded Content
@@ -243,7 +198,6 @@ function MainChat() {
                 ))}
               </div>
             </div>
-
             <div className="mt-6 border-t pt-4">
               <h3 className="text-sm font-medium text-gray-700 mb-3">
                 Generated Clips
@@ -258,6 +212,6 @@ function MainChat() {
       </div>
     </div>
   );
-}
+};
 
 export default MainChat;
